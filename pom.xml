@@ -24,10 +24,10 @@
 		<module>api</module>
 		<module>omod</module>
 	</modules>
-	
+
 	<properties>
 		<openMRSVersion>2.0.2</openMRSVersion>
-		<openMRSWebServicesVersion>2.24.0</openMRSWebServicesVersion>
+		<openMRSWebServicesVersion>2.20.0</openMRSWebServicesVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
