@@ -1,10 +1,14 @@
 package org.openmrs.module.bahmni.ie.apps.model;
 
+import java.util.List;
+
 public class BahmniForm {
     private String name;
     private String uuid;
     private String version;
     private boolean published;
+    private Integer id;
+    private List<BahmniFormResource> resources;
 
     public String getName() {
         return name;
@@ -36,5 +40,21 @@ public class BahmniForm {
 
     public void setPublished(boolean published) {
         this.published = published;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public List<BahmniFormResource> getResources() {
+        return resources;
+    }
+
+    public void setResources(List<BahmniFormResource> resources) {
+        this.resources = resources;
     }
 }
