@@ -2,6 +2,7 @@ package org.openmrs.module.bahmni.ie.apps.controller;
 
 import org.openmrs.module.bahmni.ie.apps.model.BahmniForm;
 import org.openmrs.module.bahmni.ie.apps.model.BahmniFormResource;
+import org.openmrs.module.bahmni.ie.apps.model.ExportResponse;
 import org.openmrs.module.bahmni.ie.apps.model.FormFieldTranslations;
 import org.openmrs.module.bahmni.ie.apps.model.FormTranslation;
 import org.openmrs.module.bahmni.ie.apps.service.BahmniFormService;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -72,5 +74,10 @@ public class BahmniFormController extends BaseRestController {
     @ResponseBody
     public List<BahmniForm> getAllForms() {
         return bahmniFormService.getAllForms();
+    }
+    @RequestMapping( value = baseUrl + "/export", method = RequestMethod.GET)
+    @ResponseBody
+    public ExportResponse export(@RequestParam String uuids) {
+        return bahmniFormService.getFormsByListOfUuids(Arrays.asList(uuids.split(",")));
     }
 }
