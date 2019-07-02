@@ -14,8 +14,12 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.bahmni.ie.apps.dao.BahmniFormDao;
 import org.openmrs.module.bahmni.ie.apps.mapper.BahmniFormMapper;
 import org.openmrs.module.bahmni.ie.apps.model.BahmniForm;
+import org.openmrs.module.bahmni.ie.apps.model.BahmniFormData;
 import org.openmrs.module.bahmni.ie.apps.model.BahmniFormResource;
+import org.openmrs.module.bahmni.ie.apps.model.ExportResponse;
+import org.openmrs.module.bahmni.ie.apps.model.FormTranslation;
 import org.openmrs.module.bahmni.ie.apps.service.BahmniFormService;
+import org.openmrs.module.bahmni.ie.apps.service.BahmniFormTranslationService;
 import org.openmrs.module.bahmni.ie.apps.validator.BahmniFormUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,16 +38,21 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
     private FormService formService;
     private BahmniFormDao bahmniFormDao;
     private AdministrationService administrationService;
+    private BahmniFormTranslationService bahmniFormTranslationService;
+
 
     private final Integer DEFAULT_VERSION = 1;
     private final String DEFAULT_JSON_FOLDER_PATH = "/home/bahmni/clinical_forms/";
     private final String GP_BAHMNI_FORM_PATH_JSON = "bahmni.forms.directory";
 
     @Autowired
-    public BahmniFormServiceImpl(FormService formService, BahmniFormDao bahmniFormDao, @Qualifier("adminService") AdministrationService administrationService) {
+    public BahmniFormServiceImpl(FormService formService, BahmniFormDao bahmniFormDao,
+                                 @Qualifier("adminService") AdministrationService administrationService,
+                                 BahmniFormTranslationService bahmniFormTranslationService) {
         this.formService = formService;
         this.bahmniFormDao = bahmniFormDao;
         this.administrationService = administrationService;
+        this.bahmniFormTranslationService = bahmniFormTranslationService;
     }
 
     public BahmniFormServiceImpl() {
@@ -135,6 +144,35 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         }
         return bahmniFormList;
     }
+
+    @Override
+    public ExportResponse getFormsByListOfUuids(List<String> formUuids) {
+        List<Form> formList = bahmniFormDao.getAllFormsByListOfUuids(formUuids);
+        List<BahmniFormData> bahmniFormDataList = new ArrayList<>();
+        List<String> errorFormNames = new ArrayList<>();
+        for (Form form : formList) {
+            try {
+                bahmniFormDataList.add(getBahmniFormData(form));
+            }
+            catch (Exception e){
+                errorFormNames.add(form.getName()+"_"+form.getVersion());
+            }
+        }
+        return new ExportResponse(bahmniFormDataList,errorFormNames);
+    }
+
+    private BahmniFormData getBahmniFormData(Form form) {
+        BahmniFormData bahmniFormData = new BahmniFormData();
+        BahmniFormMapper bahmniFormMapper = new BahmniFormMapper();
+        List<FormTranslation> translations = bahmniFormTranslationService.getFormTranslations(form.getName(),
+                form.getVersion(), null);
+        bahmniFormData.setTranslations(translations);
+        Collection<FormResource> formResourcesForForm = formService.getFormResourcesForForm(form);
+        List<BahmniFormResource> resources = bahmniFormMapper.mapResources(formResourcesForForm);
+        bahmniFormData.setBahmniForm(bahmniFormMapper.map(form, resources));
+        return bahmniFormData;
+    }
+
 
     private List<BahmniForm> mergeForms(List<Form> allPublishedForms, List<BahmniForm> latestPublishedForms,
                                         Map<String, List<Obs>> groupedObsByFormName) {
