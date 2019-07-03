@@ -2,6 +2,7 @@ package org.openmrs.module.bahmni.ie.apps.service.impl;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.log4j.Logger;
 import org.bahmni.customdatatype.datatype.FileSystemStorageDatatype;
 import org.openmrs.Encounter;
 import org.openmrs.Form;
@@ -11,6 +12,7 @@ import org.openmrs.api.AdministrationService;
 import org.openmrs.api.FormService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.bahmni.ie.apps.Constants;
 import org.openmrs.module.bahmni.ie.apps.dao.BahmniFormDao;
 import org.openmrs.module.bahmni.ie.apps.mapper.BahmniFormMapper;
 import org.openmrs.module.bahmni.ie.apps.model.BahmniForm;
@@ -39,6 +41,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
     private BahmniFormDao bahmniFormDao;
     private AdministrationService administrationService;
     private BahmniFormTranslationService bahmniFormTranslationService;
+    private static Logger logger = Logger.getLogger(BahmniFormServiceImpl.class);
 
 
     private final Integer DEFAULT_VERSION = 1;
@@ -155,6 +158,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
                 bahmniFormDataList.add(getBahmniFormData(form));
             }
             catch (Exception e){
+                logger.error(Constants.EXPORT_FAILED, e);
                 errorFormNames.add(form.getName()+"_"+form.getVersion());
             }
         }
