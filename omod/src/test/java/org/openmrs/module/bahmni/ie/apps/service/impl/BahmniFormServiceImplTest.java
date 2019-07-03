@@ -367,11 +367,11 @@ public class BahmniFormServiceImplTest {
         assertEquals(2, response.getBahmniFormDataList().get(0).getTranslations().size());
         assertEquals("en", response.getBahmniFormDataList().get(0).getTranslations().get(0).getLocale());
         assertEquals("fr", response.getBahmniFormDataList().get(0).getTranslations().get(1).getLocale());
-        assertEquals("FormName-1", response.getBahmniFormDataList().get(0).getBahmniForm().getName());
-        assertEquals("FormUuid1", response.getBahmniFormDataList().get(0).getBahmniForm().getUuid());
-        assertEquals("1", response.getBahmniFormDataList().get(0).getBahmniForm().getVersion());
+        assertEquals("FormName-1", response.getBahmniFormDataList().get(0).getFormJson().getName());
+        assertEquals("FormUuid1", response.getBahmniFormDataList().get(0).getFormJson().getUuid());
+        assertEquals("1", response.getBahmniFormDataList().get(0).getFormJson().getVersion());
         assertEquals("Bahmni Form Resource one",
-                response.getBahmniFormDataList().get(0).getBahmniForm().getResources().get(0).getValue());
+                response.getBahmniFormDataList().get(0).getFormJson().getResources().get(0).getValue());
 
     }
 
@@ -427,14 +427,14 @@ public class BahmniFormServiceImplTest {
         assertNotNull(response);
         assertEquals(1,response.getBahmniFormDataList().size());
         assertEquals(1, response.getErrorFormList().size());
-        assertEquals("FormName-1", response.getBahmniFormDataList().get(0).getBahmniForm().getName());
+        assertEquals("FormName-1", response.getBahmniFormDataList().get(0).getFormJson().getName());
         assertEquals("[FormName-2_1]", response.getErrorFormList().toString());
         assertEquals(2, response.getBahmniFormDataList().get(0).getTranslations().size());
         assertEquals("en", response.getBahmniFormDataList().get(0).getTranslations().get(0).getLocale());
         assertEquals("fr", response.getBahmniFormDataList().get(0).getTranslations().get(1).getLocale());
-        assertEquals("FormUuid1", response.getBahmniFormDataList().get(0).getBahmniForm().getUuid());
-        assertEquals("1", response.getBahmniFormDataList().get(0).getBahmniForm().getVersion());
-        assertEquals("Bahmni Form Resource One", response.getBahmniFormDataList().get(0).getBahmniForm()
+        assertEquals("FormUuid1", response.getBahmniFormDataList().get(0).getFormJson().getUuid());
+        assertEquals("1", response.getBahmniFormDataList().get(0).getFormJson().getVersion());
+        assertEquals("Bahmni Form Resource One", response.getBahmniFormDataList().get(0).getFormJson()
                 .getResources().get(0).getValue());
     }
 }
