@@ -12,7 +12,6 @@ import org.openmrs.api.AdministrationService;
 import org.openmrs.api.FormService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.openmrs.module.bahmni.ie.apps.Constants;
 import org.openmrs.module.bahmni.ie.apps.dao.BahmniFormDao;
 import org.openmrs.module.bahmni.ie.apps.mapper.BahmniFormMapper;
 import org.openmrs.module.bahmni.ie.apps.model.BahmniForm;
@@ -83,8 +82,8 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
     }
 
     private String constructFileNameFromForm(Form form) {
-        String fileName = BahmniFormUtils.normalizeFileName(form.getName())+ "_" + form.getVersion()+".json";
-        return administrationService.getGlobalProperty(GP_BAHMNI_FORM_PATH_JSON,DEFAULT_JSON_FOLDER_PATH) + fileName;
+        String fileName = BahmniFormUtils.normalizeFileName(form.getName()) + "_" + form.getVersion() + ".json";
+        return administrationService.getGlobalProperty(GP_BAHMNI_FORM_PATH_JSON, DEFAULT_JSON_FOLDER_PATH) + fileName;
     }
 
     @Override
@@ -92,7 +91,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         Form form = formService.getFormByUuid(formUuid);
         if (form != null) {
             Integer nextVersionNumber = nextGreatestVersionId(form.getName());
-            if(Integer.parseInt(form.getVersion())+1 != nextVersionNumber) {
+            if (Integer.parseInt(form.getVersion()) + 1 != nextVersionNumber) {
                 form.setVersion(nextVersionNumber.toString());
             }
             form.setPublished(Boolean.TRUE);
@@ -102,9 +101,9 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         return new BahmniFormMapper().map(form);
     }
 
-    private void updateFormResourceWithLatestVersion(Form form){
+    private void updateFormResourceWithLatestVersion(Form form) {
         Collection<FormResource> formResourceCollection = formService.getFormResourcesForForm(form);
-        if(formResourceCollection.size() == 1){
+        if (formResourceCollection.size() == 1) {
             FormResource formResource = formResourceCollection.iterator().next();
             formResource.setDatatypeClassname(FileSystemStorageDatatype.class.getName());
             formResource.setDatatypeConfig(constructFileNameFromForm(form));
@@ -142,8 +141,8 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         List<Form> formList = bahmniFormDao.getAllForms(null, false, false);
         List<BahmniForm> bahmniFormList = new ArrayList<>();
         BahmniFormMapper mapper = new BahmniFormMapper();
-        for(Form form: formList){
-           bahmniFormList.add(mapper.map(form));
+        for (Form form : formList) {
+            bahmniFormList.add(mapper.map(form));
         }
         return bahmniFormList;
     }
@@ -156,13 +155,12 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         for (Form form : formList) {
             try {
                 bahmniFormDataList.add(getBahmniFormData(form));
-            }
-            catch (Exception e){
-                logger.error(Constants.EXPORT_FAILED, e);
-                errorFormNames.add(form.getName()+"_"+form.getVersion());
+            } catch (Exception e) {
+                logger.error("Could not EXPORT the form", e);
+                errorFormNames.add(form.getName() + "_" + form.getVersion());
             }
         }
-        return new ExportResponse(bahmniFormDataList,errorFormNames);
+        return new ExportResponse(bahmniFormDataList, errorFormNames);
     }
 
     private BahmniFormData getBahmniFormData(Form form) {
@@ -177,7 +175,6 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         return bahmniFormData;
     }
 
-
     private List<BahmniForm> mergeForms(List<Form> allPublishedForms, List<BahmniForm> latestPublishedForms,
                                         Map<String, List<Obs>> groupedObsByFormName) {
         for (String formName : groupedObsByFormName.keySet()) {
@@ -186,7 +183,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
                     .anyMatch(isSameBahmniForm(formNameAndVersion));
             if (!isSameVersion) {
                 List<Form> listForms = allPublishedForms.stream().filter(isSameForm(formNameAndVersion)).collect(Collectors.toList());
-                if(CollectionUtils.isEmpty(listForms)) continue;
+                if (CollectionUtils.isEmpty(listForms)) continue;
                 Form publishedFormWithObs = listForms.get(0);
                 latestPublishedForms = latestPublishedForms.parallelStream().map(form -> {
                     if (form.getName().equals(formNameAndVersion[0])) {
@@ -214,7 +211,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
 
     private List<BahmniForm> getLatestFormByVersion(List<Form> forms) {
         Map<String, Form> bahmniFormMap = new LinkedHashMap<>();
-        if(CollectionUtils.isNotEmpty(forms)) {
+        if (CollectionUtils.isNotEmpty(forms)) {
             for (Form form : forms) {
                 String formName = form.getName();
                 if (bahmniFormMap.containsKey(formName)) {
@@ -260,7 +257,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
 
     private FormResource cloneFormResource(FormResource formResource) {
         FormResource clonedFormResource = new FormResource();
-        if(null != formResource.getId()) {
+        if (null != formResource.getId()) {
             clonedFormResource.setName(formResource.getName());
             clonedFormResource.setValue(formResource.getValue());
             clonedFormResource.setDatatypeClassname(formResource.getDatatypeClassname());

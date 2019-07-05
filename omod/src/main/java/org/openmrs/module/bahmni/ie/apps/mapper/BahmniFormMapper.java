@@ -42,7 +42,7 @@ public class BahmniFormMapper {
     }
 
     public List<BahmniFormResource> mapResources(Collection<FormResource> formResourcesForForm) {
-        if( formResourcesForForm == null ) return null;
+        if (formResourcesForForm == null) return null;
         List<BahmniFormResource> formResources = new ArrayList<>();
         for (FormResource formResource : formResourcesForForm) {
             BahmniFormResource bahmniFormResource = new BahmniFormResource();

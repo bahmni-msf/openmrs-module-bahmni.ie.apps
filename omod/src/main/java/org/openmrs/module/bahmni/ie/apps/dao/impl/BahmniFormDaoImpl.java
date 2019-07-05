@@ -49,13 +49,13 @@ public class BahmniFormDaoImpl implements BahmniFormDao {
     @Override
     public List<Form> getAllForms(String formName, boolean includeRetired, boolean includeDraftState) throws DAOException {
         Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Form.class);
-        if(StringUtils.isNotEmpty(formName)) {
+        if (StringUtils.isNotEmpty(formName)) {
             criteria.add(Restrictions.eq("name", formName));
         }
-        if(!includeRetired) {
+        if (!includeRetired) {
             criteria.add(Restrictions.eq("retired", Boolean.valueOf(false)));
         }
-        if(!includeDraftState) {
+        if (!includeDraftState) {
             criteria.add(Restrictions.eq("published", Boolean.valueOf(true)));
         }
         criteria.addOrder(Order.asc("name"));
