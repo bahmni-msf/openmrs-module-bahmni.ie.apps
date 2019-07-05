@@ -47,7 +47,7 @@ public class BahmniFormMapperTest {
         Form form = MotherForm.createForm("FormName", "FormUuid", "FormVersion", true);
         List<BahmniFormResource> resources = new ArrayList<>();
         resources.add(new BahmniFormResource());
-        BahmniForm bahmniForm = new BahmniFormMapper().map(form,resources);
+        BahmniForm bahmniForm = new BahmniFormMapper().map(form, resources);
         assertNotNull(bahmniForm);
         assertEquals("FormName", bahmniForm.getName());
         assertEquals("FormUuid", bahmniForm.getUuid());
