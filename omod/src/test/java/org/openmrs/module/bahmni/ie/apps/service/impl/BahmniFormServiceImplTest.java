@@ -386,6 +386,7 @@ public class BahmniFormServiceImplTest {
         assertEquals(1, response.getErrorFormList().size());
         assertEquals("[FormName-1_1]", response.getErrorFormList().toString());
     }
+
     @Test
     public void shouldReturnErrorFormNameWhenBahmniFormResourceIsNotThereInThePath() throws Exception {
         Form form1 = MotherForm.createForm("FormName-2", "FormUuid2", "1", true);
@@ -401,6 +402,7 @@ public class BahmniFormServiceImplTest {
         assertEquals(1, response.getErrorFormList().size());
         assertEquals("[FormName-2_1]", response.getErrorFormList().toString());
     }
+
     @Test
     public void shouldReturnBothFormDataAndErrorFormNameWhenOneOfTheFileDoesntHaveFormResource() throws Exception {
         BahmniFormMapper mapper = mock(BahmniFormMapper.class);
@@ -417,15 +419,15 @@ public class BahmniFormServiceImplTest {
         BahmniFormResource bahmniFormResourceOne = new BahmniFormResource();
         bahmniFormResourceOne.setValue("Bahmni Form Resource One");
         when(bahmniFormDao.getAllFormsByListOfUuids(any())).thenReturn(Arrays.asList(form1, form2));
-        when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(), null)).thenReturn(Arrays.asList(formTranslationEn1,formTranslationFr1));
+        when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(), null)).thenReturn(Arrays.asList(formTranslationEn1, formTranslationFr1));
         when(bahmniFormTranslationService.getFormTranslations(form2.getName(), form2.getVersion(), null)).thenThrow(Exception.class);
         when(formService.getFormResourcesForForm(form1)).thenReturn(Collections.
                 singletonList(formResourceOne));
         when(mapper.mapResources(Collections.singletonList(formResourceOne))).thenReturn(Collections.singletonList(bahmniFormResourceOne));
         when(mapper.map(any(Form.class), any())).thenReturn(bahmniFormOne);
-        ExportResponse response = service.getFormsByListOfUuids(Arrays.asList("UUID1","UUID2"));
+        ExportResponse response = service.getFormsByListOfUuids(Arrays.asList("UUID1", "UUID2"));
         assertNotNull(response);
-        assertEquals(1,response.getBahmniFormDataList().size());
+        assertEquals(1, response.getBahmniFormDataList().size());
         assertEquals(1, response.getErrorFormList().size());
         assertEquals("FormName-1", response.getBahmniFormDataList().get(0).getFormJson().getName());
         assertEquals("[FormName-2_1]", response.getErrorFormList().toString());
