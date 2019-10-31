@@ -19,70 +19,70 @@ import java.util.List;
 @Controller
 public class BahmniFormController extends BaseRestController {
 
-	private final String baseUrl = "/rest/" + RestConstants.VERSION_1 + "/bahmniie/form";
+    private final String baseUrl = "/rest/" + RestConstants.VERSION_1 + "/bahmniie/form";
 
-	private BahmniFormService bahmniFormService;
+    private BahmniFormService bahmniFormService;
 
-	private BahmniFormTranslationService bahmniFormTranslationService;
+    private BahmniFormTranslationService bahmniFormTranslationService;
 
-	@Autowired
-	public BahmniFormController(BahmniFormService bahmniFormService,
-			BahmniFormTranslationService bahmniFormTranslationService) {
-		this.bahmniFormService = bahmniFormService;
-		this.bahmniFormTranslationService = bahmniFormTranslationService;
-	}
+    @Autowired
+    public BahmniFormController(BahmniFormService bahmniFormService,
+                                BahmniFormTranslationService bahmniFormTranslationService) {
+        this.bahmniFormService = bahmniFormService;
+        this.bahmniFormTranslationService = bahmniFormTranslationService;
+    }
 
-	@RequestMapping(value = baseUrl + "/saveTranslation", method = RequestMethod.POST)
-	@ResponseBody
-	public List<FormTranslation> FormTranslation(@RequestBody List<FormTranslation> formTranslations) {
-		return bahmniFormTranslationService.saveFormTranslation(formTranslations);
-	}
+    @RequestMapping(value = baseUrl + "/saveTranslation", method = RequestMethod.POST)
+    @ResponseBody
+    public List<FormTranslation> FormTranslation(@RequestBody List<FormTranslation> formTranslations) {
+        return bahmniFormTranslationService.saveFormTranslation(formTranslations);
+    }
 
-	@RequestMapping(value = baseUrl + "/translations", method = RequestMethod.GET)
-	@ResponseBody
-	public List<FormTranslation> getTranslations(@RequestParam(value = "formName") String formName,
-			@RequestParam(value = "formVersion") String formVersion,
-			@RequestParam(value = "locale", required = false) String locale) {
-		return bahmniFormTranslationService.getFormTranslations(formName, formVersion, locale);
-	}
+    @RequestMapping(value = baseUrl + "/translations", method = RequestMethod.GET)
+    @ResponseBody
+    public List<FormTranslation> getTranslations(@RequestParam(value = "formName") String formName,
+                                                 @RequestParam(value = "formVersion") String formVersion,
+                                                 @RequestParam(value = "locale", required = false) String locale) {
+        return bahmniFormTranslationService.getFormTranslations(formName, formVersion, locale);
+    }
 
-	@RequestMapping(value = baseUrl + "/translate", method = RequestMethod.GET)
-	@ResponseBody
-	public FormFieldTranslations translate(@RequestParam(value = "formName") String formName,
-			@RequestParam(value = "formVersion") String formVersion,
-			@RequestParam(value = "locale") String locale) {
-		return bahmniFormTranslationService.setNewTranslationsForForm(locale, formName, formVersion);
-	}
+    @RequestMapping(value = baseUrl + "/translate", method = RequestMethod.GET)
+    @ResponseBody
+    public FormFieldTranslations translate(@RequestParam(value = "formName") String formName,
+                                           @RequestParam(value = "formVersion") String formVersion,
+                                           @RequestParam(value = "locale") String locale) {
+        return bahmniFormTranslationService.setNewTranslationsForForm(locale, formName, formVersion);
+    }
 
-	@RequestMapping(value = baseUrl + "/publish", method = RequestMethod.POST)
-	@ResponseBody
-	public BahmniForm publish(@RequestParam("formUuid") String formUuid) {
-		return bahmniFormService.publish(formUuid);
-	}
+    @RequestMapping(value = baseUrl + "/publish", method = RequestMethod.POST)
+    @ResponseBody
+    public BahmniForm publish(@RequestParam("formUuid") String formUuid) {
+        return bahmniFormService.publish(formUuid);
+    }
 
-	@RequestMapping(value = baseUrl + "/save", method = RequestMethod.POST)
-	@ResponseBody
-	public BahmniFormResource save(@RequestBody BahmniFormResource bahmniFormResource) {
-		return bahmniFormService.saveFormResource(bahmniFormResource);
-	}
+    @RequestMapping(value = baseUrl + "/save", method = RequestMethod.POST)
+    @ResponseBody
+    public BahmniFormResource save(@RequestBody BahmniFormResource bahmniFormResource) {
+        return bahmniFormService.saveFormResource(bahmniFormResource);
+    }
 
-	@RequestMapping(value = baseUrl + "/latestPublishedForms", method = RequestMethod.GET)
-	@ResponseBody
-	public List<BahmniForm> getLatestPublishedForms(
-			@RequestParam(value = "includeRetired", defaultValue = "false") boolean includeRetired,
-			@RequestParam(value = "encounterUuid", required = false) String encounterUuid) {
-		return bahmniFormService.getAllLatestPublishedForms(includeRetired, encounterUuid);
-	}
+    @RequestMapping(value = baseUrl + "/latestPublishedForms", method = RequestMethod.GET)
+    @ResponseBody
+    public List<BahmniForm> getLatestPublishedForms(
+            @RequestParam(value = "includeRetired", defaultValue = "false") boolean includeRetired,
+            @RequestParam(value = "encounterUuid", required = false) String encounterUuid) {
+        return bahmniFormService.getAllLatestPublishedForms(includeRetired, encounterUuid);
+    }
 
-	@RequestMapping(value = baseUrl + "/allForms", method = RequestMethod.GET)
-	@ResponseBody
-	public List<BahmniForm> getAllForms() {
-		return bahmniFormService.getAllForms();
-	}
+    @RequestMapping(value = baseUrl + "/allForms", method = RequestMethod.GET)
+    @ResponseBody
+    public List<BahmniForm> getAllForms() {
+        return bahmniFormService.getAllForms();
+    }
 
-	@RequestMapping( value = baseUrl + "/export", method = RequestMethod.GET)
-	@ResponseBody
-	public ExportResponse export(@RequestParam List<String> uuids) {
-		return bahmniFormService.getFormsByListOfUuids(uuids);
-	}
+    @RequestMapping(value = baseUrl + "/export", method = RequestMethod.GET)
+    @ResponseBody
+    public ExportResponse export(@RequestParam ("uuid") List<String> uuids) {
+        return bahmniFormService.getFormsByListOfUuids(uuids);
+    }
 }
