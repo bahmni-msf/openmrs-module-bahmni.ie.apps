@@ -2,6 +2,7 @@ package org.bahmni.module.bahmni.ie.apps.service.impl;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.log4j.Logger;
 import org.bahmni.customdatatype.datatype.FileSystemStorageDatatype;
 import org.bahmni.module.bahmni.ie.apps.model.BahmniFormData;
 import org.bahmni.module.bahmni.ie.apps.model.ExportResponse;
@@ -45,6 +46,8 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
 	private AdministrationService administrationService;
 
 	private BahmniFormTranslationService bahmniFormTranslationService;
+
+	private static Logger logger = Logger.getLogger(BahmniFormServiceImpl.class);
 
 	private final Integer DEFAULT_VERSION = 1;
 
@@ -163,6 +166,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
 				bahmniFormDataList.add(getBahmniFormData(form));
 			}
 			catch (Exception e){
+				logger.error("Could not EXPORT the form", e);
 				errorFormNames.add(form.getName()+"_"+form.getVersion());
 			}
 		}
