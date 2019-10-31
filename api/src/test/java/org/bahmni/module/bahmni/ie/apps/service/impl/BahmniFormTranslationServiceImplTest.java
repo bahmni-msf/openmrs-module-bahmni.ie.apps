@@ -542,7 +542,7 @@ public class BahmniFormTranslationServiceImplTest {
 		assertEquals(importedTranslationsJson, FileUtils.readFileToString(translationFile));
 	}
 
-	private static FormTranslation createFormTranslation(String locale, String version, String formName) {
+	public static FormTranslation createFormTranslation(String locale, String version, String formName) {
 		FormTranslation formTranslation = new FormTranslation();
 		formTranslation.setLocale(locale);
 		formTranslation.setVersion(version);
