@@ -15,6 +15,7 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.bahmni.ie.apps.model.FormFieldTranslations;
 import org.openmrs.module.bahmni.ie.apps.model.FormTranslation;
 import org.openmrs.module.bahmni.ie.apps.service.BahmniFormTranslationService;
+import org.openmrs.module.bahmni.ie.apps.validator.BahmniFormUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -56,7 +57,8 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
             String formName = translation.getFormName();
             String version = translation.getVersion();
             String refVersion = translation.getReferenceVersion();
-            File translationFile = new File(getFileName(formName, version));
+            String normalizedFileName = BahmniFormUtils.normalizeFileName(formName);
+            File translationFile = new File(getFileName(normalizedFileName, version));
             translationFile.getParentFile().mkdirs();
             JSONObject translationsJson = getTranslations(translationFile);
 
@@ -68,7 +70,11 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
             }
             int formVersion = isNotEmpty(version) ? Integer.parseInt(version) : 0;
             if (formVersion > 0 && isNotEmpty(refVersion)) {
-                JSONObject previousTranslationsJson = getTranslations(new File(getFileName(formName, refVersion)));
+                File refTranslationFile = new File(getFileName(formName, refVersion));
+                if(!refTranslationFile.exists()){
+                    refTranslationFile = new File(getFileName(normalizedFileName, refVersion));
+                }
+                JSONObject previousTranslationsJson = getTranslations(refTranslationFile);
                 if (!previousTranslationsJson.keySet().isEmpty())
                     updatePreviousVersionLocaleTranslations(translation, translationsJson, previousTranslationsJson);
             }
@@ -205,9 +211,14 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
 
 
     private JSONObject getTranslationJsonFromFile(String formName, String formVersion) {
-        File translationFile = new File(getFileName(formName, formVersion));
-        if (!translationFile.exists())
+        File translationFile;
+        translationFile= new File(getFileName(formName, formVersion));
+        if (!translationFile.exists()){
+            String translatedFileName = BahmniFormUtils.normalizeFileName(formName);
+            translationFile = new File(getFileName(translatedFileName, formVersion));
+            if(!translationFile.exists())
             throw new APIException(String.format("Unable to find translation file for %s_v%s", formName, formVersion));
+        }
         return getTranslations(translationFile);
     }
 
