@@ -20,6 +20,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmni.ie.apps.model.FormFieldTranslations;
 import org.openmrs.module.bahmni.ie.apps.model.FormTranslation;
 import org.openmrs.module.bahmni.ie.apps.service.BahmniFormTranslationService;
+import org.openmrs.module.bahmni.ie.apps.validator.BahmniFormUtils;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -41,7 +42,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 
-@PrepareForTest(Context.class)
+@PrepareForTest({Context.class, BahmniFormUtils.class})
 @RunWith(PowerMockRunner.class)
 public class BahmniFormTranslationServiceImplTest {
 
@@ -115,6 +116,8 @@ public class BahmniFormTranslationServiceImplTest {
     public void shouldThrowAPIExceptionIfFormNameIsNotPresent() throws Exception {
         BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl();
         createTempFolder();
+        PowerMockito.mockStatic(BahmniFormUtils.class);
+        PowerMockito.when(BahmniFormUtils.normalizeFileName(null)).thenReturn(null);
         FormTranslation formTranslation = createFormTranslation("en", "1", null);
         expectedException.expect(APIException.class);
         expectedException.expectMessage("Invalid Parameters");
