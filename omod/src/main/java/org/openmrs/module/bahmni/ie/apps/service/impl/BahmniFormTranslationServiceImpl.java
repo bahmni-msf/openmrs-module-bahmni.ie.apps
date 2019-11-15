@@ -15,11 +15,21 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.bahmni.ie.apps.model.FormFieldTranslations;
 import org.openmrs.module.bahmni.ie.apps.model.FormTranslation;
 import org.openmrs.module.bahmni.ie.apps.service.BahmniFormTranslationService;
+import org.openmrs.module.bahmni.ie.apps.validator.BahmniFormUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,12 +51,14 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
     public List<FormTranslation> saveFormTranslation(List<FormTranslation> formTranslations) {
         ObjectMapper mapper = new ObjectMapper();
         List<FormTranslation> translationList =
-                mapper.convertValue(formTranslations, new TypeReference<List<FormTranslation>>(){});
+                mapper.convertValue(formTranslations, new TypeReference<List<FormTranslation>>() { });
         FormTranslation translation = translationList.get(0);
         if (translation != null) {
             String formName = translation.getFormName();
             String version = translation.getVersion();
-            File translationFile = new File(getFileName(formName, version));
+            String refVersion = translation.getReferenceVersion();
+            String normalizedFileName = BahmniFormUtils.normalizeFileName(formName);
+            File translationFile = new File(getFileName(normalizedFileName, version));
             translationFile.getParentFile().mkdirs();
             JSONObject translationsJson = getTranslations(translationFile);
 
@@ -56,10 +68,45 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
                 }
                 translationsJson.put(formTranslation.getLocale(), getUpdatedTranslations(formTranslation));
             }
+            int formVersion = isNotEmpty(version) ? Integer.parseInt(version) : 0;
+            if (formVersion > 0 && isNotEmpty(refVersion)) {
+                File refTranslationFile = new File(getFileName(formName, refVersion));
+                if(!refTranslationFile.exists()){
+                    refTranslationFile = new File(getFileName(normalizedFileName, refVersion));
+                }
+                JSONObject previousTranslationsJson = getTranslations(refTranslationFile);
+                if (!previousTranslationsJson.keySet().isEmpty())
+                    updatePreviousVersionLocaleTranslations(translation, translationsJson, previousTranslationsJson);
+            }
             saveTranslationsToFile(translationsJson, translationFile);
         }
 
         return formTranslations;
+    }
+
+    private void updatePreviousVersionLocaleTranslations(FormTranslation translation, JSONObject translationsJson,
+                                                         JSONObject previousTranslationsJson) {
+        Iterator<String> locales = previousTranslationsJson.keys();
+        while (locales.hasNext()) {
+            String locale = locales.next();
+            boolean isDefaultLocale = locale.equals(translation.getLocale());
+            JSONObject localeTranslations = previousTranslationsJson.getJSONObject(locale);
+            localeTranslations.put("concepts", getUpdatedLocaleTranslationsForControls(localeTranslations.getJSONObject("concepts"), translation.getConcepts(), isDefaultLocale));
+            localeTranslations.put("labels", getUpdatedLocaleTranslationsForControls(localeTranslations.getJSONObject("labels"), translation.getLabels(), isDefaultLocale));
+            translationsJson.put(locale, localeTranslations);
+        }
+    }
+
+    private Map<String, String> getUpdatedLocaleTranslationsForControls(JSONObject previousVersionControls, Map<String, String> currentVersionControls, boolean isDefualtLocale) {
+        // Controls can be either CONCEPTS or LABELS`
+        if (CollectionUtils.isEmpty(currentVersionControls))
+            return new HashMap<>();
+        currentVersionControls.keySet().forEach(control -> {
+            if (previousVersionControls.has(control))
+                currentVersionControls.put(control, previousVersionControls.getString(control));
+            else currentVersionControls.put(control, isDefualtLocale ? currentVersionControls.get(control) : control);
+        });
+        return currentVersionControls;
     }
 
     @Override
@@ -124,7 +171,7 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
 
     private void saveTranslationsToFile(JSONObject translationsJson, File translationFile) {
         try {
-            FileUtils.writeStringToFile(translationFile, translationsJson.toString());
+            FileUtils.writeStringToFile(translationFile, translationsJson.toString(), "UTF-8");
         } catch (IOException e) {
             e.printStackTrace();
             throw new APIException(e.getMessage(), e);
@@ -164,16 +211,21 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
 
 
     private JSONObject getTranslationJsonFromFile(String formName, String formVersion) {
-        File translationFile = new File(getFileName(formName, formVersion));
-        if (!translationFile.exists())
+        File translationFile;
+        translationFile= new File(getFileName(formName, formVersion));
+        if (!translationFile.exists()){
+            String translatedFileName = BahmniFormUtils.normalizeFileName(formName);
+            translationFile = new File(getFileName(translatedFileName, formVersion));
+            if(!translationFile.exists())
             throw new APIException(String.format("Unable to find translation file for %s_v%s", formName, formVersion));
+        }
         return getTranslations(translationFile);
     }
 
     private JSONObject getTranslations(File translationFile) {
         String fileContent;
         try {
-            fileContent = translationFile.exists() ? FileUtils.readFileToString(translationFile) : "";
+            fileContent = translationFile.exists() ? FileUtils.readFileToString(translationFile, "UTF-8") : "";
         } catch (IOException e) {
             e.printStackTrace();
             throw new APIException(e.getMessage(), e);

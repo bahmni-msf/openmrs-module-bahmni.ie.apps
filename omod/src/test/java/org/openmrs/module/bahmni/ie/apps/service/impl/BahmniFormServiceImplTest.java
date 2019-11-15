@@ -16,25 +16,33 @@ import org.openmrs.api.FormService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmni.ie.apps.MotherForm;
 import org.openmrs.module.bahmni.ie.apps.dao.BahmniFormDao;
+import org.openmrs.module.bahmni.ie.apps.mapper.BahmniFormMapper;
 import org.openmrs.module.bahmni.ie.apps.model.BahmniForm;
 import org.openmrs.module.bahmni.ie.apps.model.BahmniFormResource;
+import org.openmrs.module.bahmni.ie.apps.model.ExportResponse;
+import org.openmrs.module.bahmni.ie.apps.model.FormTranslation;
 import org.openmrs.module.bahmni.ie.apps.service.BahmniFormService;
+import org.openmrs.module.bahmni.ie.apps.service.BahmniFormTranslationService;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.bahmni.ie.apps.service.impl.BahmniFormTranslationServiceImplTest.createFormTranslation;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
@@ -49,6 +57,9 @@ public class BahmniFormServiceImplTest {
     @Mock
     private AdministrationService administrationService;
 
+    @Mock
+    private BahmniFormTranslationService bahmniFormTranslationService;
+
 
     private BahmniFormService service;
 
@@ -60,7 +71,8 @@ public class BahmniFormServiceImplTest {
         initMocks(this);
         mockStatic(Context.class);
         PowerMockito.when(Context.getEncounterService()).thenReturn(encounterService);
-        service = new BahmniFormServiceImpl(formService, bahmniFormDao, administrationService);
+        service = new BahmniFormServiceImpl(formService, bahmniFormDao, administrationService,
+                bahmniFormTranslationService);
     }
 
     @Test
@@ -327,4 +339,104 @@ public class BahmniFormServiceImplTest {
         assertEquals(4, bahmniForms.size());
     }
 
+    @Test
+    public void shouldReturnExportResponseForListOfUuidsPassed() {
+        Form form1 = MotherForm.createForm("FormName-1", "FormUuid1", "1", true);
+        BahmniForm bahmniForm = new BahmniForm();
+        bahmniForm.setName("FormName-1");
+        FormTranslation formTranslationEn = createFormTranslation("en", "1", "FormName-1");
+        FormTranslation formTranslationFr = createFormTranslation("fr", "1", "FormName-1");
+        FormResource formResourceOne = new FormResource();
+        formResourceOne.setValue("Bahmni Form Resource one");
+        BahmniFormResource bahmniFormResource = new BahmniFormResource();
+        bahmniFormResource.setValue("Bahmni Form Resource one");
+        BahmniFormMapper mapper = mock(BahmniFormMapper.class);
+
+        when(bahmniFormDao.getAllFormsByListOfUuids(any())).thenReturn(Collections.singletonList(form1));
+        when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(), null)).
+                thenReturn(Arrays.asList(formTranslationEn, formTranslationFr));
+        when(formService.getFormResourcesForForm(any(Form.class))).thenReturn(Collections.
+                singletonList(formResourceOne));
+        when(mapper.mapResources(any())).thenReturn(Collections.singletonList(bahmniFormResource));
+        when(mapper.map(any(Form.class), any())).thenReturn(bahmniForm);
+
+        ExportResponse response = service.getFormsByListOfUuids(Collections.singletonList("UUID1"));
+        assertNotNull(response);
+        assertEquals(1, response.getBahmniFormDataList().size());
+        assertEquals(0, response.getErrorFormList().size());
+        assertEquals(2, response.getBahmniFormDataList().get(0).getTranslations().size());
+        assertEquals("en", response.getBahmniFormDataList().get(0).getTranslations().get(0).getLocale());
+        assertEquals("fr", response.getBahmniFormDataList().get(0).getTranslations().get(1).getLocale());
+        assertEquals("FormName-1", response.getBahmniFormDataList().get(0).getFormJson().getName());
+        assertEquals("FormUuid1", response.getBahmniFormDataList().get(0).getFormJson().getUuid());
+        assertEquals("1", response.getBahmniFormDataList().get(0).getFormJson().getVersion());
+        assertEquals("Bahmni Form Resource one",
+                response.getBahmniFormDataList().get(0).getFormJson().getResources().get(0).getValue());
+
+    }
+
+    @Test
+    public void shouldReturnErrorFormNameWhenTranslationFileIsNotThereInThePath() throws Exception {
+        Form form1 = MotherForm.createForm("FormName-1", "FormUuid1", "1", true);
+        when(bahmniFormDao.getAllFormsByListOfUuids(any())).thenReturn(Collections.singletonList(form1));
+        when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(), null)).thenThrow(Exception.class);
+        ExportResponse response = service.getFormsByListOfUuids(Collections.singletonList("UUID"));
+        assertNotNull(response);
+        assertEquals(0, response.getBahmniFormDataList().size());
+        assertEquals(1, response.getErrorFormList().size());
+        assertEquals("[FormName-1_1]", response.getErrorFormList().toString());
+    }
+
+    @Test
+    public void shouldReturnErrorFormNameWhenBahmniFormResourceIsNotThereInThePath() throws Exception {
+        Form form1 = MotherForm.createForm("FormName-2", "FormUuid2", "1", true);
+        FormTranslation formTranslationFr = createFormTranslation("fr", "1", "FormName-2");
+        FormTranslation formTranslationEn = createFormTranslation("en", "1", "FormName-2");
+        when(bahmniFormDao.getAllFormsByListOfUuids(any())).thenReturn(Collections.singletonList(form1));
+        when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(), null)).
+                thenReturn(Arrays.asList(formTranslationEn, formTranslationFr));
+        when(formService.getFormResourcesForForm(any(Form.class))).thenThrow(Exception.class);
+        ExportResponse response = service.getFormsByListOfUuids(Collections.singletonList("UUID"));
+        assertNotNull(response);
+        assertEquals(0, response.getBahmniFormDataList().size());
+        assertEquals(1, response.getErrorFormList().size());
+        assertEquals("[FormName-2_1]", response.getErrorFormList().toString());
+    }
+
+    @Test
+    public void shouldReturnBothFormDataAndErrorFormNameWhenOneOfTheFileDoesntHaveFormResource() throws Exception {
+        BahmniFormMapper mapper = mock(BahmniFormMapper.class);
+        Form form1 = MotherForm.createForm("FormName-1", "FormUuid1", "1", true);
+        Form form2 = MotherForm.createForm("FormName-2", "FormUuid2", "1", true);
+        FormTranslation formTranslationFr1 = createFormTranslation("fr", "1", "FormName-1");
+        FormTranslation formTranslationEn1 = createFormTranslation("en", "1", "FormName-1");
+        BahmniForm bahmniFormOne = new BahmniForm();
+        bahmniFormOne.setName("FormName-1");
+        BahmniForm bahmniFormTwo = new BahmniForm();
+        bahmniFormTwo.setName("FormName-2");
+        FormResource formResourceOne = new FormResource();
+        formResourceOne.setValue("Bahmni Form Resource One");
+        BahmniFormResource bahmniFormResourceOne = new BahmniFormResource();
+        bahmniFormResourceOne.setValue("Bahmni Form Resource One");
+        when(bahmniFormDao.getAllFormsByListOfUuids(any())).thenReturn(Arrays.asList(form1, form2));
+        when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(), null)).thenReturn(Arrays.asList(formTranslationEn1, formTranslationFr1));
+        when(bahmniFormTranslationService.getFormTranslations(form2.getName(), form2.getVersion(), null)).thenThrow(Exception.class);
+        when(formService.getFormResourcesForForm(form1)).thenReturn(Collections.
+                singletonList(formResourceOne));
+        when(mapper.mapResources(Collections.singletonList(formResourceOne))).thenReturn(Collections.singletonList(bahmniFormResourceOne));
+        when(mapper.map(any(Form.class), any())).thenReturn(bahmniFormOne);
+        ExportResponse response = service.getFormsByListOfUuids(Arrays.asList("UUID1", "UUID2"));
+        assertNotNull(response);
+        assertEquals(1, response.getBahmniFormDataList().size());
+        assertEquals(1, response.getErrorFormList().size());
+        assertEquals("FormName-1", response.getBahmniFormDataList().get(0).getFormJson().getName());
+        assertEquals("[FormName-2_1]", response.getErrorFormList().toString());
+        assertEquals(2, response.getBahmniFormDataList().get(0).getTranslations().size());
+        assertEquals("en", response.getBahmniFormDataList().get(0).getTranslations().get(0).getLocale());
+        assertEquals("fr", response.getBahmniFormDataList().get(0).getTranslations().get(1).getLocale());
+        assertEquals("FormUuid1", response.getBahmniFormDataList().get(0).getFormJson().getUuid());
+        assertEquals("1", response.getBahmniFormDataList().get(0).getFormJson().getVersion());
+        assertEquals("Bahmni Form Resource One", response.getBahmniFormDataList().get(0).getFormJson()
+                .getResources().get(0).getValue());
+    }
 }
