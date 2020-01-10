@@ -3,15 +3,15 @@ package org.bahmni.module.bahmni.ie.apps.model;
 import java.util.List;
 
 public class BahmniFormData {
-    private BahmniForm bahmniForm;
+    private BahmniForm formJson;
     private List<FormTranslation> translations;
 
-    public BahmniForm getBahmniForm() {
-        return bahmniForm;
+    public BahmniForm getFormJson() {
+        return formJson;
     }
 
-    public void setBahmniForm(BahmniForm bahmniForm) {
-        this.bahmniForm = bahmniForm;
+    public void setFormJson(BahmniForm formJson) {
+        this.formJson = formJson;
     }
 
     public List<FormTranslation> getTranslations() {

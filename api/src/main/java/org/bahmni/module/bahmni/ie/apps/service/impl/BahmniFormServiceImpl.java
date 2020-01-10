@@ -176,7 +176,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         bahmniFormData.setTranslations(translations);
         Collection<FormResource> formResourcesForForm = formService.getFormResourcesForForm(form);
         List<BahmniFormResource> resources = bahmniFormMapper.mapResources(formResourcesForForm);
-        bahmniFormData.setBahmniForm(bahmniFormMapper.map(form, resources));
+        bahmniFormData.setFormJson(bahmniFormMapper.map(form, resources));
         return bahmniFormData;
     }
 
