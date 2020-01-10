@@ -2,7 +2,9 @@ package org.bahmni.module.bahmni.ie.apps.service.impl;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.log4j.Logger;
 import org.bahmni.customdatatype.datatype.FileSystemStorageDatatype;
+import org.bahmni.module.bahmni.ie.apps.Constants;
 import org.bahmni.module.bahmni.ie.apps.dao.BahmniFormDao;
 import org.bahmni.module.bahmni.ie.apps.mapper.BahmniFormMapper;
 import org.bahmni.module.bahmni.ie.apps.model.BahmniForm;
@@ -51,6 +53,8 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
     private final String DEFAULT_JSON_FOLDER_PATH = "/home/bahmni/clinical_forms/";
 
     private final String GP_BAHMNI_FORM_PATH_JSON = "bahmni.forms.directory";
+
+    private static Logger logger = Logger.getLogger(BahmniFormServiceImpl.class);
 
     @Autowired
     public BahmniFormServiceImpl(FormService formService, BahmniFormDao bahmniFormDao,
@@ -162,6 +166,7 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
             try {
                 bahmniFormDataList.add(getBahmniFormData(form));
             } catch (Exception e) {
+                logger.error(Constants.EXPORT_FAILED, e);
                 errorFormNames.add(form.getName() + "_" + form.getVersion());
             }
         }
