@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.bahmni.module.bahmni.ie.apps.service.impl.BahmniFormTranslationServiceImplTest.createFormTranslation;
+import static org.bahmni.module.bahmni.ie.apps.helper.FormTranslationHelper.createFormTranslation;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
