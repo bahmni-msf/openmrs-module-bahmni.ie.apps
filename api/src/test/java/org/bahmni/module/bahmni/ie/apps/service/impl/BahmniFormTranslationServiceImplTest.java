@@ -565,7 +565,7 @@ public class BahmniFormTranslationServiceImplTest {
 		assertEquals(FileUtils.readFileToString(new File(translationsFilePath)), expected);
 	}
 
-	private static FormTranslation createFormTranslation(String locale, String version, String formName) {
+	public static FormTranslation createFormTranslation(String locale, String version, String formName) {
 		FormTranslation formTranslation = new FormTranslation();
 		formTranslation.setLocale(locale);
 		formTranslation.setVersion(version);

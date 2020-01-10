@@ -3,6 +3,16 @@ package org.bahmni.module.bahmni.ie.apps.service.impl;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.bahmni.customdatatype.datatype.FileSystemStorageDatatype;
+import org.bahmni.module.bahmni.ie.apps.dao.BahmniFormDao;
+import org.bahmni.module.bahmni.ie.apps.mapper.BahmniFormMapper;
+import org.bahmni.module.bahmni.ie.apps.model.BahmniForm;
+import org.bahmni.module.bahmni.ie.apps.model.BahmniFormData;
+import org.bahmni.module.bahmni.ie.apps.model.BahmniFormResource;
+import org.bahmni.module.bahmni.ie.apps.model.ExportResponse;
+import org.bahmni.module.bahmni.ie.apps.model.FormTranslation;
+import org.bahmni.module.bahmni.ie.apps.service.BahmniFormService;
+import org.bahmni.module.bahmni.ie.apps.service.BahmniFormTranslationService;
+import org.bahmni.module.bahmni.ie.apps.validator.BahmniFormUtils;
 import org.openmrs.Encounter;
 import org.openmrs.Form;
 import org.openmrs.FormResource;
@@ -11,12 +21,6 @@ import org.openmrs.api.AdministrationService;
 import org.openmrs.api.FormService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.bahmni.module.bahmni.ie.apps.dao.BahmniFormDao;
-import org.bahmni.module.bahmni.ie.apps.mapper.BahmniFormMapper;
-import org.bahmni.module.bahmni.ie.apps.model.BahmniForm;
-import org.bahmni.module.bahmni.ie.apps.model.BahmniFormResource;
-import org.bahmni.module.bahmni.ie.apps.service.BahmniFormService;
-import org.bahmni.module.bahmni.ie.apps.validator.BahmniFormUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -34,227 +38,258 @@ import java.util.stream.Collectors;
 @Service("bahmniFormService")
 public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniFormService {
 
-	private FormService formService;
+    private FormService formService;
 
-	private BahmniFormDao bahmniFormDao;
+    private BahmniFormDao bahmniFormDao;
 
-	private AdministrationService administrationService;
+    private AdministrationService administrationService;
 
-	private final Integer DEFAULT_VERSION = 1;
+    private BahmniFormTranslationService bahmniFormTranslationService;
 
-	private final String DEFAULT_JSON_FOLDER_PATH = "/home/bahmni/clinical_forms/";
+    private final Integer DEFAULT_VERSION = 1;
 
-	private final String GP_BAHMNI_FORM_PATH_JSON = "bahmni.forms.directory";
+    private final String DEFAULT_JSON_FOLDER_PATH = "/home/bahmni/clinical_forms/";
 
-	@Autowired
-	public BahmniFormServiceImpl(FormService formService, BahmniFormDao bahmniFormDao,
-			@Qualifier("adminService") AdministrationService administrationService) {
-		this.formService = formService;
-		this.bahmniFormDao = bahmniFormDao;
-		this.administrationService = administrationService;
-	}
+    private final String GP_BAHMNI_FORM_PATH_JSON = "bahmni.forms.directory";
 
-	public BahmniFormServiceImpl() {
-	}
+    @Autowired
+    public BahmniFormServiceImpl(FormService formService, BahmniFormDao bahmniFormDao,
+                                 @Qualifier("adminService") AdministrationService administrationService,
+                                 BahmniFormTranslationService bahmniFormTranslationService) {
+        this.formService = formService;
+        this.bahmniFormDao = bahmniFormDao;
+        this.administrationService = administrationService;
+        this.bahmniFormTranslationService = bahmniFormTranslationService;
+    }
 
-	@Override
-	@Transactional
-	public BahmniFormResource saveFormResource(BahmniFormResource bahmniFormResource) {
-		Form form = formService.getFormByUuid(bahmniFormResource.getForm().getUuid());
-		FormResource formResource = getFormResource(bahmniFormResource.getUuid());
-		if (form.getPublished()) {
-			form = cloneForm(form);
-			form.setVersion(nextGreatestVersionId(form.getName()).toString());
-			formService.saveForm(form);
+    public BahmniFormServiceImpl() {
+    }
 
-			formResource = cloneFormResource(formResource);
-		}
-		formResource.setForm(form);
-		formResource.setName(bahmniFormResource.getForm().getName());
-		formResource.setDatatypeClassname(FileSystemStorageDatatype.class.getName());
-		formResource.setDatatypeConfig(constructFileNameFromForm(form));
-		formResource.setValue(bahmniFormResource.getValue());
-		formResource = formService.saveFormResource(formResource);
-		return new BahmniFormMapper().map(formResource);
-	}
+    @Override
+    @Transactional
+    public BahmniFormResource saveFormResource(BahmniFormResource bahmniFormResource) {
+        Form form = formService.getFormByUuid(bahmniFormResource.getForm().getUuid());
+        FormResource formResource = getFormResource(bahmniFormResource.getUuid());
+        if (form.getPublished()) {
+            form = cloneForm(form);
+            form.setVersion(nextGreatestVersionId(form.getName()).toString());
+            formService.saveForm(form);
 
-	private String constructFileNameFromForm(Form form) {
-		String fileName = BahmniFormUtils.normalizeFileName(form.getName()) + "_" + form.getVersion() + ".json";
-		return administrationService.getGlobalProperty(GP_BAHMNI_FORM_PATH_JSON, DEFAULT_JSON_FOLDER_PATH) + fileName;
-	}
+            formResource = cloneFormResource(formResource);
+        }
+        formResource.setForm(form);
+        formResource.setName(bahmniFormResource.getForm().getName());
+        formResource.setDatatypeClassname(FileSystemStorageDatatype.class.getName());
+        formResource.setDatatypeConfig(constructFileNameFromForm(form));
+        formResource.setValue(bahmniFormResource.getValue());
+        formResource = formService.saveFormResource(formResource);
+        return new BahmniFormMapper().map(formResource);
+    }
 
-	@Override
-	@Transactional
-	public BahmniForm publish(String formUuid) {
-		Form form = formService.getFormByUuid(formUuid);
-		if (form != null) {
-			Integer nextVersionNumber = nextGreatestVersionId(form.getName());
-			if (Integer.parseInt(form.getVersion()) + 1 != nextVersionNumber) {
-				form.setVersion(nextVersionNumber.toString());
-			}
-			form.setPublished(Boolean.TRUE);
-			form = formService.saveForm(form);
-			updateFormResourceWithLatestVersion(form);
-		}
-		return new BahmniFormMapper().map(form);
-	}
+    private String constructFileNameFromForm(Form form) {
+        String fileName = BahmniFormUtils.normalizeFileName(form.getName()) + "_" + form.getVersion() + ".json";
+        return administrationService.getGlobalProperty(GP_BAHMNI_FORM_PATH_JSON, DEFAULT_JSON_FOLDER_PATH) + fileName;
+    }
 
-	private void updateFormResourceWithLatestVersion(Form form) {
-		Collection<FormResource> formResourceCollection = formService.getFormResourcesForForm(form);
-		if (formResourceCollection.size() == 1) {
-			FormResource formResource = formResourceCollection.iterator().next();
-			formResource.setDatatypeClassname(FileSystemStorageDatatype.class.getName());
-			formResource.setDatatypeConfig(constructFileNameFromForm(form));
-			formResource.setValue(formResource.getValue());
-			formService.saveFormResource(formResource);
-		}
-	}
+    @Override
+    @Transactional
+    public BahmniForm publish(String formUuid) {
+        Form form = formService.getFormByUuid(formUuid);
+        if (form != null) {
+            Integer nextVersionNumber = nextGreatestVersionId(form.getName());
+            if (Integer.parseInt(form.getVersion()) + 1 != nextVersionNumber) {
+                form.setVersion(nextVersionNumber.toString());
+            }
+            form.setPublished(Boolean.TRUE);
+            form = formService.saveForm(form);
+            updateFormResourceWithLatestVersion(form);
+        }
+        return new BahmniFormMapper().map(form);
+    }
 
-	@Override
-	public List<BahmniForm> getAllLatestPublishedForms(boolean includeRetired, String encounterUuid) {
-		List<Form> allPublishedForms = bahmniFormDao.getAllPublishedForms(includeRetired);
-		List<BahmniForm> latestPublishedForms = getLatestFormByVersion(allPublishedForms);
+    private void updateFormResourceWithLatestVersion(Form form) {
+        Collection<FormResource> formResourceCollection = formService.getFormResourcesForForm(form);
+        if (formResourceCollection.size() == 1) {
+            FormResource formResource = formResourceCollection.iterator().next();
+            formResource.setDatatypeClassname(FileSystemStorageDatatype.class.getName());
+            formResource.setDatatypeConfig(constructFileNameFromForm(form));
+            formResource.setValue(formResource.getValue());
+            formService.saveFormResource(formResource);
+        }
+    }
 
-		if (encounterUuid == null) {
-			return latestPublishedForms;
-		}
+    @Override
+    public List<BahmniForm> getAllLatestPublishedForms(boolean includeRetired, String encounterUuid) {
+        List<Form> allPublishedForms = bahmniFormDao.getAllPublishedForms(includeRetired);
+        List<BahmniForm> latestPublishedForms = getLatestFormByVersion(allPublishedForms);
 
-		Encounter encounter = Context.getEncounterService().getEncounterByUuid(encounterUuid);
-		Set<Obs> obs = encounter.getAllObs(false);
-		if (CollectionUtils.isEmpty(obs)) {
-			return latestPublishedForms;
-		}
+        if (encounterUuid == null) {
+            return latestPublishedForms;
+        }
 
-		Map<String, List<Obs>> groupedObsByFormName = obs.parallelStream().filter(o -> o.getFormFieldPath() != null)
-				.collect(Collectors.groupingByConcurrent(BahmniFormServiceImpl::getKey));
-		if (MapUtils.isEmpty(groupedObsByFormName)) {
-			return latestPublishedForms;
-		}
+        Encounter encounter = Context.getEncounterService().getEncounterByUuid(encounterUuid);
+        Set<Obs> obs = encounter.getAllObs(false);
+        if (CollectionUtils.isEmpty(obs)) {
+            return latestPublishedForms;
+        }
 
-		return mergeForms(allPublishedForms, latestPublishedForms, groupedObsByFormName);
-	}
+        Map<String, List<Obs>> groupedObsByFormName = obs.parallelStream().filter(o -> o.getFormFieldPath() != null)
+                .collect(Collectors.groupingByConcurrent(BahmniFormServiceImpl::getKey));
+        if (MapUtils.isEmpty(groupedObsByFormName)) {
+            return latestPublishedForms;
+        }
 
-	@Override
-	public List<BahmniForm> getAllForms() {
-		List<Form> formList = bahmniFormDao.getAllForms(null, false, false);
-		List<BahmniForm> bahmniFormList = new ArrayList<>();
-		BahmniFormMapper mapper = new BahmniFormMapper();
-		for (Form form : formList) {
-			bahmniFormList.add(mapper.map(form));
-		}
-		return bahmniFormList;
-	}
+        return mergeForms(allPublishedForms, latestPublishedForms, groupedObsByFormName);
+    }
 
-	private List<BahmniForm> mergeForms(List<Form> allPublishedForms, List<BahmniForm> latestPublishedForms,
-			Map<String, List<Obs>> groupedObsByFormName) {
-		for (String formName : groupedObsByFormName.keySet()) {
-			String[] formNameAndVersion = formName.split("\\.");
-			boolean isSameVersion = latestPublishedForms.parallelStream()
-					.anyMatch(isSameBahmniForm(formNameAndVersion));
-			if (!isSameVersion) {
-				List<Form> listForms = allPublishedForms.stream().filter(isSameForm(formNameAndVersion))
-						.collect(Collectors.toList());
-				if (CollectionUtils.isEmpty(listForms))
-					continue;
-				Form publishedFormWithObs = listForms.get(0);
-				latestPublishedForms = latestPublishedForms.parallelStream().map(form -> {
-					if (form.getName().equals(formNameAndVersion[0])) {
-						form.setVersion(publishedFormWithObs.getVersion());
-						form.setUuid(publishedFormWithObs.getUuid());
-					}
-					return form;
-				}).collect(Collectors.toList());
-			}
-		}
-		return latestPublishedForms;
-	}
+    @Override
+    public List<BahmniForm> getAllForms() {
+        List<Form> formList = bahmniFormDao.getAllForms(null, false, false);
+        List<BahmniForm> bahmniFormList = new ArrayList<>();
+        BahmniFormMapper mapper = new BahmniFormMapper();
+        for (Form form : formList) {
+            bahmniFormList.add(mapper.map(form));
+        }
+        return bahmniFormList;
+    }
 
-	private Predicate<Form> isSameForm(String[] formNameAndVersion) {
-		return form -> form.getName().equals(formNameAndVersion[0]) && form.getVersion().equals(formNameAndVersion[1]);
-	}
+    @Override
+    public ExportResponse getFormsByListOfUuids(List<String> formUuids) {
+        List<Form> formList = bahmniFormDao.getAllFormsByListOfUuids(formUuids);
+        List<BahmniFormData> bahmniFormDataList = new ArrayList<>();
+        List<String> errorFormNames = new ArrayList<>();
+        for (Form form : formList) {
+            try {
+                bahmniFormDataList.add(getBahmniFormData(form));
+            } catch (Exception e) {
+                errorFormNames.add(form.getName() + "_" + form.getVersion());
+            }
+        }
+        return new ExportResponse(bahmniFormDataList, errorFormNames);
+    }
 
-	private Predicate<BahmniForm> isSameBahmniForm(String[] formNameAndVersion) {
-		return form -> form.getName().equals(formNameAndVersion[0]) && form.getVersion().equals(formNameAndVersion[1]);
-	}
+    private BahmniFormData getBahmniFormData(Form form) {
+        BahmniFormData bahmniFormData = new BahmniFormData();
+        BahmniFormMapper bahmniFormMapper = new BahmniFormMapper();
+        List<FormTranslation> translations = bahmniFormTranslationService.getFormTranslations(form.getName(),
+                form.getVersion(), null);
+        bahmniFormData.setTranslations(translations);
+        Collection<FormResource> formResourcesForForm = formService.getFormResourcesForForm(form);
+        List<BahmniFormResource> resources = bahmniFormMapper.mapResources(formResourcesForForm);
+        bahmniFormData.setBahmniForm(bahmniFormMapper.map(form, resources));
+        return bahmniFormData;
+    }
 
-	private static String getKey(Obs o) {
-		return o.getFormFieldPath().split("/")[0];
-	}
+    private List<BahmniForm> mergeForms(List<Form> allPublishedForms, List<BahmniForm> latestPublishedForms,
+                                        Map<String, List<Obs>> groupedObsByFormName) {
+        for (String formName : groupedObsByFormName.keySet()) {
+            String[] formNameAndVersion = formName.split("\\.");
+            boolean isSameVersion = latestPublishedForms.parallelStream()
+                    .anyMatch(isSameBahmniForm(formNameAndVersion));
+            if (!isSameVersion) {
+                List<Form> listForms = allPublishedForms.stream().filter(isSameForm(formNameAndVersion))
+                        .collect(Collectors.toList());
+                if (CollectionUtils.isEmpty(listForms))
+                    continue;
+                Form publishedFormWithObs = listForms.get(0);
+                latestPublishedForms = latestPublishedForms.parallelStream().map(form -> {
+                    if (form.getName().equals(formNameAndVersion[0])) {
+                        form.setVersion(publishedFormWithObs.getVersion());
+                        form.setUuid(publishedFormWithObs.getUuid());
+                    }
+                    return form;
+                }).collect(Collectors.toList());
+            }
+        }
+        return latestPublishedForms;
+    }
 
-	private List<BahmniForm> getLatestFormByVersion(List<Form> forms) {
-		Map<String, Form> bahmniFormMap = new LinkedHashMap<>();
-		if (CollectionUtils.isNotEmpty(forms)) {
-			for (Form form : forms) {
-				String formName = form.getName();
-				if (bahmniFormMap.containsKey(formName)) {
-					if (Integer.parseInt(form.getVersion()) > Integer.parseInt(bahmniFormMap.get(formName).getVersion())) {
-						bahmniFormMap.put(formName, form);
-					}
-				} else {
-					bahmniFormMap.put(formName, form);
-				}
-			}
-		}
-		return map(bahmniFormMap);
-	}
+    private Predicate<Form> isSameForm(String[] formNameAndVersion) {
+        return form -> form.getName().equals(formNameAndVersion[0]) && form.getVersion().equals(formNameAndVersion[1]);
+    }
 
-	private List<BahmniForm> map(Map<String, Form> forDetailsMap) {
-		List<BahmniForm> bahmniForms = new ArrayList<>();
-		BahmniFormMapper mapper = new BahmniFormMapper();
-		if (MapUtils.isNotEmpty(forDetailsMap)) {
-			for (Form form : forDetailsMap.values()) {
-				bahmniForms.add(mapper.map(form));
-			}
-		}
-		return bahmniForms;
-	}
+    private Predicate<BahmniForm> isSameBahmniForm(String[] formNameAndVersion) {
+        return form -> form.getName().equals(formNameAndVersion[0]) && form.getVersion().equals(formNameAndVersion[1]);
+    }
 
-	private FormResource getFormResource(String formResourceUuid) {
-		FormResource formResource = formService.getFormResourceByUuid(formResourceUuid);
-		if (null == formResource) {
-			formResource = new FormResource();
-		}
-		return formResource;
-	}
+    private static String getKey(Obs o) {
+        return o.getFormFieldPath().split("/")[0];
+    }
 
-	private Form cloneForm(Form form) {
-		Form clonedForm = new Form();
-		clonedForm.setName(form.getName());
-		clonedForm.setVersion(form.getVersion());
-		clonedForm.setBuild(form.getBuild());
-		clonedForm.setEncounterType(form.getEncounterType());
-		clonedForm.setCreator(form.getCreator());
-		return clonedForm;
-	}
+    private List<BahmniForm> getLatestFormByVersion(List<Form> forms) {
+        Map<String, Form> bahmniFormMap = new LinkedHashMap<>();
+        if (CollectionUtils.isNotEmpty(forms)) {
+            for (Form form : forms) {
+                String formName = form.getName();
+                if (bahmniFormMap.containsKey(formName)) {
+                    if (Integer.parseInt(form.getVersion()) > Integer.parseInt(bahmniFormMap.get(formName).getVersion())) {
+                        bahmniFormMap.put(formName, form);
+                    }
+                } else {
+                    bahmniFormMap.put(formName, form);
+                }
+            }
+        }
+        return map(bahmniFormMap);
+    }
 
-	private FormResource cloneFormResource(FormResource formResource) {
-		FormResource clonedFormResource = new FormResource();
-		if (null != formResource.getId()) {
-			clonedFormResource.setName(formResource.getName());
-			clonedFormResource.setValue(formResource.getValue());
-			clonedFormResource.setDatatypeClassname(formResource.getDatatypeClassname());
-			clonedFormResource.setDatatypeConfig(formResource.getDatatypeConfig());
-			clonedFormResource.setPreferredHandlerClassname(formResource.getPreferredHandlerClassname());
-			clonedFormResource.setHandlerConfig(formResource.getHandlerConfig());
-		}
-		return clonedFormResource;
-	}
+    private List<BahmniForm> map(Map<String, Form> forDetailsMap) {
+        List<BahmniForm> bahmniForms = new ArrayList<>();
+        BahmniFormMapper mapper = new BahmniFormMapper();
+        if (MapUtils.isNotEmpty(forDetailsMap)) {
+            for (Form form : forDetailsMap.values()) {
+                bahmniForms.add(mapper.map(form));
+            }
+        }
+        return bahmniForms;
+    }
 
-	private Integer nextGreatestVersionId(String formName) {
-		List<Form> forms = bahmniFormDao.getAllForms(formName, false, true);
-		float version = 0f;
-		if (CollectionUtils.isNotEmpty(forms)) {
-			for (Form form : forms) {
-				float formVersion = Float.parseFloat(form.getVersion());
-				if (formVersion > version) {
-					version = formVersion;
-				}
-			}
-		}
-		if (version > 0f) {
-			version++;
-			return (int) version;
-		}
-		return DEFAULT_VERSION;
-	}
+    private FormResource getFormResource(String formResourceUuid) {
+        FormResource formResource = formService.getFormResourceByUuid(formResourceUuid);
+        if (null == formResource) {
+            formResource = new FormResource();
+        }
+        return formResource;
+    }
+
+    private Form cloneForm(Form form) {
+        Form clonedForm = new Form();
+        clonedForm.setName(form.getName());
+        clonedForm.setVersion(form.getVersion());
+        clonedForm.setBuild(form.getBuild());
+        clonedForm.setEncounterType(form.getEncounterType());
+        clonedForm.setCreator(form.getCreator());
+        return clonedForm;
+    }
+
+    private FormResource cloneFormResource(FormResource formResource) {
+        FormResource clonedFormResource = new FormResource();
+        if (null != formResource.getId()) {
+            clonedFormResource.setName(formResource.getName());
+            clonedFormResource.setValue(formResource.getValue());
+            clonedFormResource.setDatatypeClassname(formResource.getDatatypeClassname());
+            clonedFormResource.setDatatypeConfig(formResource.getDatatypeConfig());
+            clonedFormResource.setPreferredHandlerClassname(formResource.getPreferredHandlerClassname());
+            clonedFormResource.setHandlerConfig(formResource.getHandlerConfig());
+        }
+        return clonedFormResource;
+    }
+
+    private Integer nextGreatestVersionId(String formName) {
+        List<Form> forms = bahmniFormDao.getAllForms(formName, false, true);
+        float version = 0f;
+        if (CollectionUtils.isNotEmpty(forms)) {
+            for (Form form : forms) {
+                float formVersion = Float.parseFloat(form.getVersion());
+                if (formVersion > version) {
+                    version = formVersion;
+                }
+            }
+        }
+        if (version > 0f) {
+            version++;
+            return (int) version;
+        }
+        return DEFAULT_VERSION;
+    }
 }
