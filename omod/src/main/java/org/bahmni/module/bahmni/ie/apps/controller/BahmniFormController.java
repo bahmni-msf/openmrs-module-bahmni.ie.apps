@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -86,7 +85,7 @@ public class BahmniFormController extends BaseRestController {
 
     @RequestMapping(value = baseUrl + "/export", method = RequestMethod.GET)
     @ResponseBody
-    public ExportResponse export(@RequestParam String uuids) {
-        return bahmniFormService.getFormsByListOfUuids(Arrays.asList(uuids.split(",")));
+    public ExportResponse export(@RequestParam ("uuids") List<String> uuids) {
+        return bahmniFormService.getFormsByListOfUuids(uuids);
     }
 }
