@@ -85,7 +85,7 @@ public class BahmniFormController extends BaseRestController {
 
     @RequestMapping(value = baseUrl + "/export", method = RequestMethod.GET)
     @ResponseBody
-    public ExportResponse export(@RequestParam ("uuids") List<String> uuids) {
+    public ExportResponse export(@RequestParam ("uuid") List<String> uuids) {
         return bahmniFormService.getFormsByListOfUuids(uuids);
     }
 }
