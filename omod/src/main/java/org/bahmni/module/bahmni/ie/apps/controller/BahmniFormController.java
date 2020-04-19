@@ -7,9 +7,13 @@ import org.bahmni.module.bahmni.ie.apps.model.FormFieldTranslations;
 import org.bahmni.module.bahmni.ie.apps.model.FormTranslation;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormService;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormTranslationService;
+import org.openmrs.api.APIException;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -87,7 +91,27 @@ public class BahmniFormController extends BaseRestController {
 
     @RequestMapping(value = baseUrl + "/export", method = RequestMethod.GET)
     @ResponseBody
-    public ExportResponse export(@RequestParam ("uuid") List<String> uuids) {
-        return bahmniFormService.getFormsByListOfUuids(uuids);
+    public ExportResponse export(@RequestParam ("uuid") List<String> formUuids) {
+        return bahmniFormService.formDetailsFor(formUuids);
+    }
+
+    @RequestMapping(value = baseUrl + "/name/saveTranslation", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<BahmniFormResource> saveFormNameTranslations(@RequestBody BahmniFormResource bahmniFormResource, @RequestParam(value = "referenceFormUuid", required = false) String referenceFormUuid) {
+        try {
+            return new ResponseEntity<>(bahmniFormService.saveFormNameTranslation(bahmniFormResource, referenceFormUuid), HttpStatus.OK);
+        } catch (APIException ae) {
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    @RequestMapping(value = baseUrl + "/name/translate", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getFormNameTranslations(@RequestParam(value = "formName") String formName, @RequestParam(value = "formUuid") String formUuid) {
+        String response =bahmniFormTranslationService.getFormNameTranslations(formName, formUuid);
+        if (response != null)
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

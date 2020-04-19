@@ -12,17 +12,21 @@ import org.bahmni.module.bahmni.ie.apps.service.BahmniFormService;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormTranslationService;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.openmrs.Encounter;
 import org.openmrs.Form;
 import org.openmrs.FormResource;
 import org.openmrs.Obs;
+import org.openmrs.api.APIException;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.FormService;
 import org.openmrs.api.context.Context;
+import org.openmrs.customdatatype.NotYetPersistedException;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -37,9 +41,12 @@ import static org.bahmni.module.bahmni.ie.apps.helper.FormTranslationHelper.crea
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -65,6 +72,9 @@ public class BahmniFormServiceImplTest {
 
     @Mock
     private BahmniFormTranslationService bahmniFormTranslationService;
+
+    @Rule
+    ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
@@ -191,11 +201,12 @@ public class BahmniFormServiceImplTest {
 
     @Test
     public void shouldReturnAllLatestVersionOfPublishedForms() {
-        Form form1 = MotherForm.createForm("FormName", "FormUuid1", "1", true);
-        Form form2 = MotherForm.createForm("FormName", "FormUuid2", "2", true);
-        Form form3 = MotherForm.createForm("FormName", "FormUuid3", "3", true);
-        Form form4 = MotherForm.createForm("FormName", "FormUuid4", "4", true);
-        when(bahmniFormDao.getAllPublishedForms(any(Boolean.class))).thenReturn(Arrays.asList(form1, form2, form3, form4));
+        BahmniForm form1 = MotherForm.createBahmniForm("FormName", "FormUuid1", "1", true);
+        BahmniForm form2 = MotherForm.createBahmniForm("FormName", "FormUuid2", "2", true);
+        BahmniForm form3 = MotherForm.createBahmniForm("FormName", "FormUuid3", "3", true);
+        BahmniForm form4 = MotherForm.createBahmniForm("FormName", "FormUuid4", "4", true);
+        when(bahmniFormDao.getAllPublishedFormsWithNameTranslation(any(Boolean.class)))
+                .thenReturn(Arrays.asList(form1, form2, form3, form4));
 
         List<BahmniForm> bahmniForms = service.getAllLatestPublishedForms(false, null);
 
@@ -209,13 +220,14 @@ public class BahmniFormServiceImplTest {
 
     @Test
     public void shouldReturnLatestPublishedFormsIfNoObsAreRecorded() {
-        Form form1 = MotherForm.createForm("FormName1", "FormUuid1", "1", true);
-        Form form2 = MotherForm.createForm("FormName2", "FormUuid2", "1", true);
-        Form form3 = MotherForm.createForm("FormName1", "FormUuid1", "2", true);
-        Form form4 = MotherForm.createForm("FormName2", "FormUuid2", "2", true);
+        BahmniForm form1 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "1", true);
+        BahmniForm form2 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "1", true);
+        BahmniForm form3 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "2", true);
+        BahmniForm form4 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "2", true);
 
         Encounter encounter = new Encounter();
-        when(bahmniFormDao.getAllPublishedForms(any(Boolean.class))).thenReturn(Arrays.asList(form1, form2, form3, form4));
+        when(bahmniFormDao.getAllPublishedFormsWithNameTranslation(any(Boolean.class)))
+                .thenReturn(Arrays.asList(form1, form2, form3, form4));
         when(encounterService.getEncounterByUuid("encounterUuid")).thenReturn(encounter);
 
         List<BahmniForm> bahmniForms = service.getAllLatestPublishedForms(false, "encounterUuid");
@@ -229,15 +241,16 @@ public class BahmniFormServiceImplTest {
 
     @Test
     public void shouldReturnLatestPublishedFormsIfObservationsDoNotHaveFormFieldPath() {
-        Form form1 = MotherForm.createForm("FormName1", "FormUuid1", "1", true);
-        Form form2 = MotherForm.createForm("FormName2", "FormUuid2", "1", true);
-        Form form3 = MotherForm.createForm("FormName1", "FormUuid1", "2", true);
-        Form form4 = MotherForm.createForm("FormName2", "FormUuid2", "2", true);
+        BahmniForm form1 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "1", true);
+        BahmniForm form2 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "1", true);
+        BahmniForm form3 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "2", true);
+        BahmniForm form4 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "2", true);
 
         Encounter encounter = new Encounter();
         encounter.setObs(new HashSet<>(Arrays.asList(new Obs(), new Obs())));
 
-        when(bahmniFormDao.getAllPublishedForms(any(Boolean.class))).thenReturn(Arrays.asList(form1, form2, form3, form4));
+        when(bahmniFormDao.getAllPublishedFormsWithNameTranslation(any(Boolean.class)))
+                .thenReturn(Arrays.asList(form1, form2, form3, form4));
 
         when(encounterService.getEncounterByUuid("encounterUuid")).thenReturn(encounter);
 
@@ -252,10 +265,10 @@ public class BahmniFormServiceImplTest {
 
     @Test
     public void shouldReturnLatestPublishedFormsIfFewObservationsHaveFormFieldPath() {
-        Form form1 = MotherForm.createForm("FormName1", "FormUuid1", "1", true);
-        Form form2 = MotherForm.createForm("FormName2", "FormUuid2", "1", true);
-        Form form3 = MotherForm.createForm("FormName1", "FormUuid1", "2", true);
-        Form form4 = MotherForm.createForm("FormName2", "FormUuid2", "2", true);
+        BahmniForm form1 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "1", true);
+        BahmniForm form2 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "1", true);
+        BahmniForm form3 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "2", true);
+        BahmniForm form4 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "2", true);
 
         Encounter encounter = new Encounter();
 
@@ -264,7 +277,8 @@ public class BahmniFormServiceImplTest {
 
         encounter.setObs(new HashSet<>(Arrays.asList(obs, new Obs())));
 
-        when(bahmniFormDao.getAllPublishedForms(any(Boolean.class))).thenReturn(Arrays.asList(form1, form2, form3, form4));
+        when(bahmniFormDao.getAllPublishedFormsWithNameTranslation(any(Boolean.class)))
+                .thenReturn(Arrays.asList(form1, form2, form3, form4));
 
         when(encounterService.getEncounterByUuid("encounterUuid")).thenReturn(encounter);
 
@@ -279,10 +293,10 @@ public class BahmniFormServiceImplTest {
 
     @Test
     public void shouldReturnAppropriatePublishedForms() {
-        Form form1 = MotherForm.createForm("FormName1", "FormUuid1", "1", true);
-        Form form2 = MotherForm.createForm("FormName2", "FormUuid2", "1", true);
-        Form form3 = MotherForm.createForm("FormName1", "FormUuid1", "2", true);
-        Form form4 = MotherForm.createForm("FormName2", "FormUuid2", "2", true);
+        BahmniForm form1 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "1", true);
+        BahmniForm form2 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "1", true);
+        BahmniForm form3 = MotherForm.createBahmniForm("FormName1", "FormUuid1", "2", true);
+        BahmniForm form4 = MotherForm.createBahmniForm("FormName2", "FormUuid2", "2", true);
 
         Encounter encounter = new Encounter();
 
@@ -294,7 +308,8 @@ public class BahmniFormServiceImplTest {
 
         encounter.setObs(new HashSet<>(Arrays.asList(obs1, obs2)));
 
-        when(bahmniFormDao.getAllPublishedForms(any(Boolean.class))).thenReturn(Arrays.asList(form1, form2, form3, form4));
+        when(bahmniFormDao.getAllPublishedFormsWithNameTranslation(any(Boolean.class)))
+                .thenReturn(Arrays.asList(form1, form2, form3, form4));
 
         when(encounterService.getEncounterByUuid("encounterUuid")).thenReturn(encounter);
 
@@ -330,11 +345,11 @@ public class BahmniFormServiceImplTest {
 
     @Test
     public void shouldReturnAllForms() {
-        Form form1 = MotherForm.createForm("FormName-1", "FormUuid1", "1", true);
-        Form form2 = MotherForm.createForm("FormName-1", "FormUuid2", "2", true);
-        Form form3 = MotherForm.createForm("FormName-2", "FormUuid3", "1", true);
-        Form form4 = MotherForm.createForm("FormName-3", "FormUuid4", "1", false);
-        when(bahmniFormDao.getAllForms(any(String.class), any(Boolean.class), any(Boolean.class)))
+        BahmniForm form1 = MotherForm.createBahmniForm("FormName-1", "FormUuid1", "1", true);
+        BahmniForm form2 = MotherForm.createBahmniForm("FormName-1", "FormUuid2", "2", true);
+        BahmniForm form3 = MotherForm.createBahmniForm("FormName-2", "FormUuid3", "1", true);
+        BahmniForm form4 = MotherForm.createBahmniForm("FormName-3", "FormUuid4", "1", false);
+        when(bahmniFormDao.formsWithNameTransaltionsFor(any(String.class), any(Boolean.class), any(Boolean.class)))
                 .thenReturn(Arrays.asList(form1, form2, form3, form4));
 
         List<BahmniForm> bahmniForms = service.getAllForms();
@@ -367,7 +382,7 @@ public class BahmniFormServiceImplTest {
         when(mapper.mapResources(any())).thenReturn(Collections.singletonList(bahmniFormResource));
         when(mapper.map(any(Form.class), any())).thenReturn(bahmniForm);
 
-        ExportResponse response = service.getFormsByListOfUuids(Collections.singletonList("UUID1"));
+        ExportResponse response = service.formDetailsFor(Collections.singletonList("UUID1"));
         assertNotNull(response);
         assertEquals(1, response.getBahmniFormDataList().size());
         assertEquals(0, response.getErrorFormList().size());
@@ -388,7 +403,7 @@ public class BahmniFormServiceImplTest {
         when(bahmniFormDao.getAllFormsByListOfUuids(any())).thenReturn(Collections.singletonList(form1));
         when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(),
                 null, form1.getUuid())).thenThrow(Exception.class);
-        ExportResponse response = service.getFormsByListOfUuids(Collections.singletonList("UUID"));
+        ExportResponse response = service.formDetailsFor(Collections.singletonList("UUID"));
         assertNotNull(response);
         assertEquals(0, response.getBahmniFormDataList().size());
         assertEquals(1, response.getErrorFormList().size());
@@ -404,7 +419,7 @@ public class BahmniFormServiceImplTest {
         when(bahmniFormTranslationService.getFormTranslations(form1.getName(), form1.getVersion(), null, "form_uuid")).
                 thenReturn(Arrays.asList(formTranslationEn, formTranslationFr));
         when(formService.getFormResourcesForForm(any(Form.class))).thenThrow(Exception.class);
-        ExportResponse response = service.getFormsByListOfUuids(Collections.singletonList("UUID"));
+        ExportResponse response = service.formDetailsFor(Collections.singletonList("UUID"));
         assertNotNull(response);
         assertEquals(0, response.getBahmniFormDataList().size());
         assertEquals(1, response.getErrorFormList().size());
@@ -435,7 +450,7 @@ public class BahmniFormServiceImplTest {
                 singletonList(formResourceOne));
         when(mapper.mapResources(Collections.singletonList(formResourceOne))).thenReturn(Collections.singletonList(bahmniFormResourceOne));
         when(mapper.map(any(Form.class), any())).thenReturn(bahmniFormOne);
-        ExportResponse response = service.getFormsByListOfUuids(Arrays.asList("UUID1", "UUID2"));
+        ExportResponse response = service.formDetailsFor(Arrays.asList("UUID1", "UUID2"));
         assertNotNull(response);
         assertEquals(1, response.getBahmniFormDataList().size());
         assertEquals(1, response.getErrorFormList().size());
@@ -448,6 +463,79 @@ public class BahmniFormServiceImplTest {
         assertEquals("1", response.getBahmniFormDataList().get(0).getFormJson().getVersion());
         assertEquals("Bahmni Form Resource One", response.getBahmniFormDataList().get(0).getFormJson()
                 .getResources().get(0).getValue());
+    }
+
+
+    @Test
+    public void shouldSaveFormNameResourceWithGivenValue() {
+        BahmniForm bahmniForm = MotherForm.createBahmniForm("FormName", "FormUuid");
+        BahmniFormResource bahmniFormResource = MotherForm.createBahmniFormResource("", "ReferenceValue", bahmniForm);
+
+        Form form = MotherForm.createForm("FormName", "FormUuid", "FormVersion", false);
+        FormResource formResource = MotherForm.createFormResource(1, "ReferenceValue", "FormResourceUuid", form);
+
+        when(formService.getFormByUuid(any(String.class))).thenReturn(form);
+        when(formService.saveFormResource(any(FormResource.class))).thenReturn(formResource);
+
+        BahmniFormResource updatedBahmniFormResource = service.saveFormNameTranslation(bahmniFormResource, null);
+
+        assertNotNull(updatedBahmniFormResource);
+        assertEquals("ReferenceValue", updatedBahmniFormResource.getValue());
+
+        assertNotNull(updatedBahmniFormResource.getForm());
+        assertEquals("FormName", updatedBahmniFormResource.getForm().getName());
+        assertEquals("FormUuid", updatedBahmniFormResource.getForm().getUuid());
+    }
+
+    @Test
+    public void shouldSaveFormNameResourceWithAlreadyExistingValue() {
+        BahmniForm bahmniForm = MotherForm.createBahmniForm("FormName", "FormUuid");
+        BahmniFormResource bahmniFormResource = MotherForm.createBahmniFormResource("", "ReferenceValue", bahmniForm);
+
+        Form form = MotherForm.createForm("FormName", "FormUuid", "FormVersion", false);
+        Form oldForm = MotherForm.createForm("FormName", "OldFormUuid", "FormVersion", false);
+        FormResource oldFormResource = MotherForm.createFormResource(1, "Old Form Reference Value", "FormResourceUuid", form);
+        oldFormResource.setValueReferenceInternal("Old Form Reference Value");
+        FormResource formResource = MotherForm.createFormResource(2, "ReferenceValue", "FormResourceUuid", form);
+
+        when(formService.getFormByUuid("OldFormUuid")).thenReturn(oldForm);
+        when(formService.getFormByUuid("FormUuid")).thenReturn(form);
+        when(formService.getFormResource(eq(oldForm), any())).thenReturn(oldFormResource);
+        when(formService.saveFormResource(any(FormResource.class))).thenReturn(oldFormResource);
+
+        BahmniFormResource updatedBahmniFormResource = service.saveFormNameTranslation(bahmniFormResource, "OldFormUuid");
+
+        assertNotNull(updatedBahmniFormResource);
+        assertEquals("Old Form Reference Value", updatedBahmniFormResource.getValue());
+
+        assertNotNull(updatedBahmniFormResource.getForm());
+        assertEquals("FormName", updatedBahmniFormResource.getForm().getName());
+        assertEquals("FormUuid", updatedBahmniFormResource.getForm().getUuid());
+    }
+
+    @Test
+    public void shouldReturnNullIfNoValueAndReferenceFormUuidAreGiven() {
+        BahmniForm bahmniForm = MotherForm.createBahmniForm("FormName", "FormUuid");
+        BahmniFormResource bahmniFormResource = MotherForm.createBahmniFormResource("", "", bahmniForm);
+
+        expectedException.expect(APIException.class);
+        service.saveFormNameTranslation(bahmniFormResource, "");
+        verify(formService, times(0)).saveFormResource(any());
+    }
+
+    @Test
+    public void shouldReturnNullIfNoValueIsFoundForGivenReferenceFormUuid() {
+        BahmniForm bahmniForm = MotherForm.createBahmniForm("FormName", "FormUuid");
+        BahmniFormResource bahmniFormResource = MotherForm.createBahmniFormResource("", "", bahmniForm);
+
+        Form oldForm = MotherForm.createForm("FormName", "OldFormUuid", "FormVersion", false);
+
+        when(formService.getFormByUuid("OLD_REF_FORM_UUID")).thenReturn(oldForm);
+        when(formService.getFormResource(oldForm, "FormName_FormName_Translation")).thenReturn(null);
+        BahmniFormResource updatedBahmniFormResource = service.saveFormNameTranslation(bahmniFormResource, "OLD_REF_FORM_UUID");
+
+        assertEquals("", updatedBahmniFormResource.getValue());
+        verify(formService, times(0)).saveFormResource(any());
     }
 
 }
