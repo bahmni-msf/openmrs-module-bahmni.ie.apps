@@ -1,10 +1,7 @@
 package org.bahmni.module.bahmni.ie.apps.controller;
 
-import org.bahmni.module.bahmni.ie.apps.model.BahmniForm;
-import org.bahmni.module.bahmni.ie.apps.model.BahmniFormResource;
-import org.bahmni.module.bahmni.ie.apps.model.ExportResponse;
-import org.bahmni.module.bahmni.ie.apps.model.FormFieldTranslations;
-import org.bahmni.module.bahmni.ie.apps.model.FormTranslation;
+import org.bahmni.module.bahmni.ie.apps.model.*;
+import org.bahmni.module.bahmni.ie.apps.service.BahmniFormPrivilegesService;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormService;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormTranslationService;
 import org.openmrs.api.APIException;
@@ -32,13 +29,16 @@ public class BahmniFormController extends BaseRestController {
 
     private BahmniFormTranslationService bahmniFormTranslationService;
 
+    private BahmniFormPrivilegesService bahmniFormPrivilegesService;
+
     @Autowired
     public BahmniFormController(BahmniFormService bahmniFormService,
-                                BahmniFormTranslationService bahmniFormTranslationService) {
+                                BahmniFormTranslationService bahmniFormTranslationService,
+                                BahmniFormPrivilegesService bahmniFormPrivilegesService) {
         this.bahmniFormService = bahmniFormService;
         this.bahmniFormTranslationService = bahmniFormTranslationService;
+        this.bahmniFormPrivilegesService = bahmniFormPrivilegesService;
     }
-
     @RequestMapping(value = baseUrl + "/saveTranslation", method = RequestMethod.POST)
     @ResponseBody
     public List<FormTranslation> FormTranslation(@RequestBody List<FormTranslation> formTranslations) {
@@ -114,4 +114,22 @@ public class BahmniFormController extends BaseRestController {
         else
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @RequestMapping(value = baseUrl + "/getFormPrivileges", method = RequestMethod.GET)
+    @ResponseBody
+    public List<BahmniFormPrivilege> getFormPrivileges(@RequestParam(value = "formId") Integer formId) {
+        return bahmniFormPrivilegesService.getAllPrivilegesForForm(formId);
+
+    }
+    @RequestMapping(value = baseUrl + "/saveFormPrivileges", method = RequestMethod.POST)
+    @ResponseBody
+    public List<BahmniFormPrivilege> saveFormPrivileges(@RequestBody List<BahmniFormPrivilege> formPrivileges) {
+
+        System.out.println("saveFormPrivileges in controller");
+        return bahmniFormPrivilegesService.saveFormPrivileges(formPrivileges);
+
+
+    }
+
+
 }
