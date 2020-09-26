@@ -23,10 +23,12 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
 
     private BahmniFormPrivilegeDao bahmniFormPrivilegeDao;
     protected Log log = LogFactory.getLog(getClass());
+    private BahmniFormPrivilegesService bahmniFormPrivilegesService;
 
     @Autowired
     public BahmniFormPrivilegesServiceImpl(BahmniFormPrivilegeDao bahmniFormPrivilegeDao) {
         this.bahmniFormPrivilegeDao = bahmniFormPrivilegeDao;
+        this.bahmniFormPrivilegesService = bahmniFormPrivilegesService;
     }
     public BahmniFormPrivilegesServiceImpl(){
 
@@ -58,15 +60,19 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
         log.info("Inside BahmniFormPrivilegesServiceImpl -->saveFormPrivileges " + formPrivileges);
         List<BahmniFormPrivilege> resultList = new ArrayList<BahmniFormPrivilege>();
         List<BahmniFormPrivilege> privilegesList = new ArrayList<BahmniFormPrivilege>();
-        BahmniFormPrivilege tempPrivilege = new BahmniFormPrivilege();
+        List<BahmniFormPrivilege> oldPrivilegeList = new ArrayList<BahmniFormPrivilege>();
+
         Iterator privilegeItr = formPrivileges.iterator();
+        int formId = 0;
         log.info("Inside BahmniFormPrivilegesServiceImpl -->saveFormPrivileges " + privilegeItr);
         while (privilegeItr.hasNext()) {
             LinkedHashMap temp = (LinkedHashMap) privilegeItr.next();
             List<Map.Entry> entrySetList = new ArrayList<Map.Entry>(temp.entrySet());
+            BahmniFormPrivilege tempPrivilege = new BahmniFormPrivilege();
             for (Map.Entry tempEntrySet : entrySetList) {
                 if (tempEntrySet.getKey().toString().equalsIgnoreCase("formId")) {
                     tempPrivilege.setFormId((Integer) temp.get("formId"));
+                    formId=(Integer) temp.get("formId");
                 } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("editable")) {
                     tempPrivilege.setEditable((Boolean) temp.get("editable"));
                 } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("privilegeName")) {
@@ -75,8 +81,15 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
                     tempPrivilege.setViewable((Boolean) temp.get("viewable"));
                 }
             }
+            privilegesList.add(tempPrivilege);
         }
-        privilegesList.add(tempPrivilege);
+
+        oldPrivilegeList = getAllPrivilegesForForm(formId);
+        if((oldPrivilegeList != null) && !(oldPrivilegeList.isEmpty())){
+            for(int i = 0 ; i< oldPrivilegeList.size();i++) {
+               bahmniFormPrivilegeDao.deleteFormPrivilege(oldPrivilegeList.get(i));
+            }
+        }
             if (privilegesList != null) {
                 for (BahmniFormPrivilege privilege : privilegesList) {
                     System.out.println("Inside BahmniFormPrivilegesServiceImpl -->saveFormPrivileges foreach" + privilege);

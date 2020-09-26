@@ -4,10 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.bahmni.module.bahmni.ie.apps.dao.BahmniFormPrivilegeDao;
 import org.bahmni.module.bahmni.ie.apps.model.BahmniFormPrivilege;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.Transformers;
@@ -54,5 +51,15 @@ public class BahmniFormPrivilegeDaoImpl implements BahmniFormPrivilegeDao {
         return formPrivilege;
     }
 
+    @Transactional
+    @Override
+    public void deleteFormPrivilege(BahmniFormPrivilege formPrivilege) {
+
+//        Query query = sessionFactory.getCurrentSession().createQuery("delete from bahmni_form_privilege where form_id = :ID");
+//        query.setParameter("ID", formId);
+//        return query.executeUpdate();
+         sessionFactory.getCurrentSession().delete(formPrivilege);
+         sessionFactory.getCurrentSession().flush();
+    }
 
 }

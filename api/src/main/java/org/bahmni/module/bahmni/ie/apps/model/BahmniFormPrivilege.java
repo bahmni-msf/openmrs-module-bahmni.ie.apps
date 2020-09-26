@@ -4,24 +4,30 @@ import org.openmrs.BaseOpenmrsData;
 import org.openmrs.BaseOpenmrsObject;
 import org.openmrs.customdatatype.CustomValueDescriptor;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.List;
 
+@Entity
+@Table(name = "bahmni_form_privilege")
 public class BahmniFormPrivilege extends BaseOpenmrsData implements Serializable {
 
     private Integer formId;
     private String privilegeName;
-    private String programWorkflowStateId;
     private Boolean editable;
     private Boolean viewable;
 
-    public BahmniFormPrivilege(Integer formId, String privilegeName, String programWorkflowStateId, Boolean editable, Boolean viewable) {
-        this.formId = formId;
-        this.privilegeName = privilegeName;
-        this.programWorkflowStateId = programWorkflowStateId;
-        this.editable = editable;
-        this.viewable = viewable;
+    public Integer getForm_privilege_id() {
+        return form_privilege_id;
     }
+
+    public void setForm_privilege_id(Integer form_privilege_id) {
+        this.form_privilege_id = form_privilege_id;
+    }
+
+    private Integer form_privilege_id;
+
     public BahmniFormPrivilege() {
     }
     public BahmniFormPrivilege(Integer formId, String privilegeName, Boolean editable, Boolean viewable) {
@@ -30,7 +36,7 @@ public class BahmniFormPrivilege extends BaseOpenmrsData implements Serializable
         this.privilegeName = privilegeName;
         this.editable = editable;
         this.viewable = viewable;
-        this.programWorkflowStateId = null;
+
     }
 
     public Integer getFormId() {

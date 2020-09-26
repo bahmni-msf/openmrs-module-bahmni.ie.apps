@@ -11,4 +11,6 @@ public interface BahmniFormPrivilegeDao {
     BahmniFormPrivilege saveFormPrivilege(BahmniFormPrivilege formPrivilege) throws DAOException;
 
     BahmniFormPrivilege getFormPrivilege(String privilegeName , Integer formId) throws DAOException;
+
+    void deleteFormPrivilege(BahmniFormPrivilege formPrivilege) throws DAOException;
 }

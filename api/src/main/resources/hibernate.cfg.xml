@@ -18,8 +18,8 @@
         <property name="hibernate.search.model_mapping">org.openmrs.api.db.hibernate.search.LuceneAnalyzerFactory</property>
 
         <!-- API -->
+        <mapping resource="BahmniFormPrivilege.hbm.xml" />
 
-        <mapping resource="/api/src/main/resources/BahmniFomPrivilege.hbm.xml" />
     </session-factory>
 
 </hibernate-configuration>
