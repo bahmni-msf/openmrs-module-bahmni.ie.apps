@@ -53,13 +53,14 @@ public class BahmniFormPrivilegeDaoImpl implements BahmniFormPrivilegeDao {
 
     @Transactional
     @Override
-    public void deleteFormPrivilege(BahmniFormPrivilege formPrivilege) {
+    public BahmniFormPrivilege deleteFormPrivilege(BahmniFormPrivilege formPrivilege) {
 
 //        Query query = sessionFactory.getCurrentSession().createQuery("delete from bahmni_form_privilege where form_id = :ID");
 //        query.setParameter("ID", formId);
 //        return query.executeUpdate();
          sessionFactory.getCurrentSession().delete(formPrivilege);
          sessionFactory.getCurrentSession().flush();
+         return formPrivilege;
     }
 
 }

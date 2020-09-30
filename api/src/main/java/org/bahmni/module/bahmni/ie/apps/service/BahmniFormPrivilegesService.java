@@ -9,4 +9,6 @@ public interface BahmniFormPrivilegesService extends OpenmrsService {
 
     List<BahmniFormPrivilege> getAllPrivilegesForForm(Integer formId);
 
+    List<BahmniFormPrivilege> deleteAllPrivilegesForGivenFormId(Integer formId);
+
 }

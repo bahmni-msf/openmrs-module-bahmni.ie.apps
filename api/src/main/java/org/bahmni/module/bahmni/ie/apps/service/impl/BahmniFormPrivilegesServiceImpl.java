@@ -62,53 +62,84 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
         List<BahmniFormPrivilege> privilegesList = new ArrayList<BahmniFormPrivilege>();
         List<BahmniFormPrivilege> oldPrivilegeList = new ArrayList<BahmniFormPrivilege>();
 
-        Iterator privilegeItr = formPrivileges.iterator();
-        int formId = 0;
-        log.info("Inside BahmniFormPrivilegesServiceImpl -->saveFormPrivileges " + privilegeItr);
-        while (privilegeItr.hasNext()) {
-            LinkedHashMap temp = (LinkedHashMap) privilegeItr.next();
-            List<Map.Entry> entrySetList = new ArrayList<Map.Entry>(temp.entrySet());
-            BahmniFormPrivilege tempPrivilege = new BahmniFormPrivilege();
-            for (Map.Entry tempEntrySet : entrySetList) {
-                if (tempEntrySet.getKey().toString().equalsIgnoreCase("formId")) {
-                    tempPrivilege.setFormId((Integer) temp.get("formId"));
-                    formId=(Integer) temp.get("formId");
-                } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("editable")) {
-                    tempPrivilege.setEditable((Boolean) temp.get("editable"));
-                } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("privilegeName")) {
-                    tempPrivilege.setPrivilegeName((String) temp.get("privilegeName"));
-                } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("viewable")) {
-                    tempPrivilege.setViewable((Boolean) temp.get("viewable"));
-                }
-            }
-            privilegesList.add(tempPrivilege);
-        }
+//        if (formPrivileges.size() == 1 && formPrivileges.get(0).getPrivilegeName().equalsIgnoreCase("")) {
+//            oldPrivilegeList = getAllPrivilegesForForm(formPrivileges.get(1).getFormId());
+//            if (oldPrivilegeList != null && !(oldPrivilegeList.isEmpty())) {
+//                for (int i = 0; i < oldPrivilegeList.size(); i++) {
+//                    resultList.add(bahmniFormPrivilegeDao.deleteFormPrivilege(oldPrivilegeList.get(i)));
+//                }
+//            }
+//            return resultList;
+//        } else {
 
-        oldPrivilegeList = getAllPrivilegesForForm(formId);
-        if((oldPrivilegeList != null) && !(oldPrivilegeList.isEmpty())){
-            for(int i = 0 ; i< oldPrivilegeList.size();i++) {
-               bahmniFormPrivilegeDao.deleteFormPrivilege(oldPrivilegeList.get(i));
-            }
-        }
-            if (privilegesList != null) {
-                for (BahmniFormPrivilege privilege : privilegesList) {
-                    System.out.println("Inside BahmniFormPrivilegesServiceImpl -->saveFormPrivileges foreach" + privilege);
-                    resultList.add(saveFormPrivilege(privilege));
+            Iterator privilegeItr = formPrivileges.iterator();
+            int formId = 0;
+            log.info("Inside BahmniFormPrivilegesServiceImpl -->saveFormPrivileges " + privilegeItr);
+            while (privilegeItr.hasNext()) {
+                LinkedHashMap temp = (LinkedHashMap) privilegeItr.next();
+                List<Map.Entry> entrySetList = new ArrayList<Map.Entry>(temp.entrySet());
+                BahmniFormPrivilege tempPrivilege = new BahmniFormPrivilege();
+                for (Map.Entry tempEntrySet : entrySetList) {
+                    if (tempEntrySet.getKey().toString().equalsIgnoreCase("formId")) {
+                        tempPrivilege.setFormId((Integer) temp.get("formId"));
+                        formId = (Integer) temp.get("formId");
+                    } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("editable")) {
+                        tempPrivilege.setEditable((Boolean) temp.get("editable"));
+                    } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("privilegeName")) {
+                         String privilegeName = temp.get("privilegeName").toString();
+                         tempPrivilege.setPrivilegeName(privilegeName);
+
+                    } else if (tempEntrySet.getKey().toString().equalsIgnoreCase("viewable")) {
+                        tempPrivilege.setViewable((Boolean) temp.get("viewable"));
+                    }
                 }
-                ;
+                privilegesList.add(tempPrivilege);
             }
-            return resultList;
+            if (privilegesList.size() == 1 && privilegesList.get(0).getPrivilegeName().equalsIgnoreCase("")) {
+                deleteAllThePrivilegesFromDB(formId);
+            } else {
+                oldPrivilegeList = getAllPrivilegesForForm(formId);
+                if ((oldPrivilegeList != null) && !(oldPrivilegeList.isEmpty())) {
+                    for (int i = 0; i < oldPrivilegeList.size(); i++) {
+                        bahmniFormPrivilegeDao.deleteFormPrivilege(oldPrivilegeList.get(i));
+                    }
+                }
+                    if (privilegesList != null) {
+                        for(int i=0;i<privilegesList.size();i++){
+                            resultList.add(saveFormPrivilege(privilegesList.get(i)));
+                        }
+                    }
+            }
+        return resultList;
 
     }
         @Transactional(readOnly = true)
     public BahmniFormPrivilege getFormPrivilege(String privilgeName , Integer formId) throws APIException {
        return bahmniFormPrivilegeDao.getFormPrivilege(privilgeName,formId);
    }
+    public void deleteAllThePrivilegesFromDB( Integer formId){
+        List<BahmniFormPrivilege> privilegeListToBeDeleted = getAllPrivilegesForForm(formId);
+        if ((privilegeListToBeDeleted != null) && !(privilegeListToBeDeleted.isEmpty())) {
+            for (int i = 0; i < privilegeListToBeDeleted.size(); i++) {
+                bahmniFormPrivilegeDao.deleteFormPrivilege(privilegeListToBeDeleted.get(i));
+            }
+        }
 
+    }
     @Override
     public List<BahmniFormPrivilege> getAllPrivilegesForForm(Integer formId) {
         List<BahmniFormPrivilege> formPrivileges = bahmniFormPrivilegeDao.getAllPrivilegesForForm(formId);
         return formPrivileges;
 
     }
+    @Override
+    public List<BahmniFormPrivilege>deleteAllPrivilegesForGivenFormId(Integer formId) {
+        List<BahmniFormPrivilege> formPrivileges = bahmniFormPrivilegeDao.getAllPrivilegesForForm(formId);
+        for(int i = 0;i<formPrivileges.size();i++){
+            bahmniFormPrivilegeDao.deleteFormPrivilege(formPrivileges.get(i));
+        }
+        return formPrivileges;
+    }
+
+
 }
