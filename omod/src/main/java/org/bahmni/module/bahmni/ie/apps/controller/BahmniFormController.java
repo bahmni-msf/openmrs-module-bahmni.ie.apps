@@ -4,6 +4,7 @@ import org.bahmni.module.bahmni.ie.apps.model.*;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormPrivilegesService;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormService;
 import org.bahmni.module.bahmni.ie.apps.service.BahmniFormTranslationService;
+import org.openmrs.Form;
 import org.openmrs.api.APIException;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
@@ -117,13 +118,28 @@ public class BahmniFormController extends BaseRestController {
 
     @RequestMapping(value = baseUrl + "/getFormPrivileges", method = RequestMethod.GET)
     @ResponseBody
-    public List<BahmniFormPrivilege> getFormPrivileges(@RequestParam(value = "formId") Integer formId) {
+    public List<FormPrivilege> getFormPrivileges(@RequestParam(value = "formId") Integer formId) {
         return bahmniFormPrivilegesService.getAllPrivilegesForForm(formId);
 
     }
+    @RequestMapping(value = baseUrl + "/getFormPrivilegesFromUuidAndFormId", method = RequestMethod.GET)
+    @ResponseBody
+    public List<FormPrivilege> getFormPrivilegeGivenFormUuid(@RequestParam(value = "formUuid") String formUuid , @RequestParam(value = "formId") Integer formId) {
+        return bahmniFormPrivilegesService.getFormPrivilegeGivenFormUuid(formUuid,formId);
+
+
+    }
+    @RequestMapping(value = baseUrl + "/getFormPrivilegesFromFormName", method = RequestMethod.GET)
+    @ResponseBody
+    public List<FormPrivilege> getFormDetailsFromFormName(@RequestParam(value = "formName") String formName , @RequestParam(value = "formVersion") String formVersion) {
+        Form retreivedForm = bahmniFormService.getFormDetailsFromFormName(formName, formVersion);
+        Integer formId = retreivedForm.getFormId();
+        String formUuid = retreivedForm.getUuid();
+        return bahmniFormPrivilegesService.getFormPrivilegeGivenFormUuid(formUuid, formId);
+    }
     @RequestMapping(value = baseUrl + "/saveFormPrivileges", method = RequestMethod.POST)
     @ResponseBody
-    public List<BahmniFormPrivilege> saveFormPrivileges(@RequestBody List<BahmniFormPrivilege> formPrivileges) {
+    public List<FormPrivilege> saveFormPrivileges(@RequestBody List<FormPrivilege> formPrivileges) {
 
         System.out.println("saveFormPrivileges in controller");
         return bahmniFormPrivilegesService.saveFormPrivileges(formPrivileges);

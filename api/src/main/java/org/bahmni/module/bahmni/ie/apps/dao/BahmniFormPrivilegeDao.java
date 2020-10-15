@@ -1,16 +1,18 @@
 package org.bahmni.module.bahmni.ie.apps.dao;
 
-import org.bahmni.module.bahmni.ie.apps.model.BahmniFormPrivilege;
+import org.bahmni.module.bahmni.ie.apps.model.FormPrivilege;
 import org.openmrs.api.db.DAOException;
 import java.util.List;
 
 public interface BahmniFormPrivilegeDao {
 
-    List<BahmniFormPrivilege> getAllPrivilegesForForm(Integer formId) throws DAOException;
+    List<FormPrivilege> getAllPrivilegesForForm(Integer formId) throws DAOException;
 
-    BahmniFormPrivilege saveFormPrivilege(BahmniFormPrivilege formPrivilege) throws DAOException;
+    FormPrivilege saveFormPrivilege(FormPrivilege formPrivilege) throws DAOException;
 
-    BahmniFormPrivilege getFormPrivilege(String privilegeName , Integer formId) throws DAOException;
+    FormPrivilege getFormPrivilege(String privilegeName , Integer formId) throws DAOException;
 
-    BahmniFormPrivilege deleteFormPrivilege(BahmniFormPrivilege formPrivilege) throws DAOException;
+    List<FormPrivilege> getFormPrivilegeGivenFormUuid(String formUuid, Integer formId) throws DAOException;
+
+    FormPrivilege deleteFormPrivilege(FormPrivilege formPrivilege) throws DAOException;
 }

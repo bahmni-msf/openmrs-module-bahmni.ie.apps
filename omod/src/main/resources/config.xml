@@ -25,7 +25,7 @@
     <activator>org.bahmni.module.bahmni.ie.apps.BahmniIEAppsActivator</activator>
 
     <mappingFiles>
-        BahmniFormPrivilege.hbm.xml
+        FormPrivilege.hbm.xml
     </mappingFiles>
 
     <globalProperty>

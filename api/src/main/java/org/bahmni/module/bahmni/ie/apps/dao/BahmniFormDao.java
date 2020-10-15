@@ -21,4 +21,6 @@ public interface BahmniFormDao {
     List<Form> getAllFormsByListOfUuids(List<String> formUuids) throws DAOException;
 
 	List getAllPublishedFormsWithNameTranslation(boolean includeRetired) throws DAOException;
+
+	List<Form> getPublishedFormWithUuid(String formUuid) throws DAOException;
 }

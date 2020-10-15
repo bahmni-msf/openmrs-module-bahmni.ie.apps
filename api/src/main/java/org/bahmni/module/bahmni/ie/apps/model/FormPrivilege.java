@@ -9,34 +9,39 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.List;
 
-@Entity
-@Table(name = "bahmni_form_privilege")
-public class BahmniFormPrivilege extends BaseOpenmrsData implements Serializable {
+public class FormPrivilege extends BaseOpenmrsData implements Serializable {
 
     private Integer formId;
     private String privilegeName;
     private Boolean editable;
     private Boolean viewable;
+    private String formUuid;
+    private Integer form_privilege_id;
 
+    public FormPrivilege() {
+    }
+    public FormPrivilege(Integer formId, String privilegeName, Boolean editable, Boolean viewable , String formUuid) {
+
+        this.formId = formId;
+        this.privilegeName = privilegeName;
+        this.editable = editable;
+        this.viewable = viewable;
+        this.formUuid = formUuid;
+
+    }
+    public String getFormUuid() {
+        return formUuid;
+    }
+
+    public void setFormUuid(String formUuid) {
+        this.formUuid = formUuid;
+    }
     public Integer getForm_privilege_id() {
         return form_privilege_id;
     }
 
     public void setForm_privilege_id(Integer form_privilege_id) {
         this.form_privilege_id = form_privilege_id;
-    }
-
-    private Integer form_privilege_id;
-
-    public BahmniFormPrivilege() {
-    }
-    public BahmniFormPrivilege(Integer formId, String privilegeName, Boolean editable, Boolean viewable) {
-
-        this.formId = formId;
-        this.privilegeName = privilegeName;
-        this.editable = editable;
-        this.viewable = viewable;
-
     }
 
     public Integer getFormId() {
@@ -55,13 +60,6 @@ public class BahmniFormPrivilege extends BaseOpenmrsData implements Serializable
         this.privilegeName = privilegeName;
     }
 
-    public String getProgramWorkflowStateId() {
-        return programWorkflowStateId;
-    }
-
-    public void setProgramWorkflowStateId(String programWorkflowStateId) {
-        this.programWorkflowStateId = programWorkflowStateId;
-    }
 
     public Boolean getEditable() {
         return editable;

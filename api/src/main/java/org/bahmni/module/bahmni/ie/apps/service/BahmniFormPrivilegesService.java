@@ -1,14 +1,16 @@
 package org.bahmni.module.bahmni.ie.apps.service;
-import org.bahmni.module.bahmni.ie.apps.model.BahmniFormPrivilege;
+import org.bahmni.module.bahmni.ie.apps.model.FormPrivilege;
 import org.openmrs.api.OpenmrsService;
 import java.util.List;
 
 public interface BahmniFormPrivilegesService extends OpenmrsService {
 
-    List<BahmniFormPrivilege> saveFormPrivileges(List<BahmniFormPrivilege> formPrivileges);
+    List<FormPrivilege> saveFormPrivileges(List<FormPrivilege> formPrivileges);
 
-    List<BahmniFormPrivilege> getAllPrivilegesForForm(Integer formId);
+    List<FormPrivilege> getAllPrivilegesForForm(Integer formId);
 
-    List<BahmniFormPrivilege> deleteAllPrivilegesForGivenFormId(Integer formId);
+    List<FormPrivilege> getFormPrivilegeGivenFormUuid(String formUuid, Integer formId);
+
+    List<FormPrivilege> deleteAllPrivilegesForGivenFormId(Integer formId);
 
 }
