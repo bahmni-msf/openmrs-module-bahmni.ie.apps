@@ -15,26 +15,28 @@ public class FormPrivilege extends BaseOpenmrsData implements Serializable {
     private String privilegeName;
     private Boolean editable;
     private Boolean viewable;
-    private String formUuid;
+
+    public String getFormVersion() {
+        return formVersion;
+    }
+
+    public void setFormVersion(String formVersion) {
+        this.formVersion = formVersion;
+    }
+
+    private String formVersion;
     private Integer form_privilege_id;
 
     public FormPrivilege() {
     }
-    public FormPrivilege(Integer formId, String privilegeName, Boolean editable, Boolean viewable , String formUuid) {
+    public FormPrivilege(Integer formId, String privilegeName, Boolean editable, Boolean viewable , String formVersion) {
 
         this.formId = formId;
         this.privilegeName = privilegeName;
         this.editable = editable;
         this.viewable = viewable;
-        this.formUuid = formUuid;
+        this.formVersion = formVersion;
 
-    }
-    public String getFormUuid() {
-        return formUuid;
-    }
-
-    public void setFormUuid(String formUuid) {
-        this.formUuid = formUuid;
     }
     public Integer getForm_privilege_id() {
         return form_privilege_id;

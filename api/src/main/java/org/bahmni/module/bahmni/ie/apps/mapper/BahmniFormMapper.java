@@ -26,6 +26,7 @@ public class BahmniFormMapper   {
         bahmniForm.setUuid(form.getUuid());
         bahmniForm.setVersion(form.getVersion());
         bahmniForm.setPublished(form.getPublished());
+        bahmniForm.setId(form.getFormId());
         return bahmniForm;
     }
 

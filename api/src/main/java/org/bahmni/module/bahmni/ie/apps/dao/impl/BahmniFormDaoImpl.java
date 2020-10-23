@@ -98,7 +98,7 @@ public class BahmniFormDaoImpl implements BahmniFormDao {
 				BahmniForm tempForm = result.get(i);
 				Criteria criteria = sessionFactory.getCurrentSession().createCriteria(FormPrivilege.class);
 				criteria.add(Restrictions.eq("formId", tempForm.getId()));
-				criteria.add(Restrictions.eq("formUuid",tempForm.getUuid()));
+				criteria.add(Restrictions.eq("formVersion",tempForm.getVersion()));
 				List<FormPrivilege>  privileges = criteria.list();
 				tempForm.setPrivileges(privileges);
 				finalList.add(tempForm);

@@ -24,9 +24,10 @@ public class BahmniFormPrivilegeDaoImpl implements BahmniFormPrivilegeDao {
     }
 
     @Override
-    public List<FormPrivilege> getAllPrivilegesForForm(Integer formId) throws DAOException {
+    public List<FormPrivilege> getAllPrivilegesForForm(Integer formId,String formVersion) throws DAOException {
         Criteria criteria = sessionFactory.getCurrentSession().createCriteria(FormPrivilege.class);
         criteria.add(Restrictions.eq("formId", formId));
+        criteria.add(Restrictions.eq("formVersion", formVersion));
         return criteria.list();
     }
     @Override

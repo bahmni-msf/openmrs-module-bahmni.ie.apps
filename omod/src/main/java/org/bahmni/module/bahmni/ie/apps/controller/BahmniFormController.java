@@ -9,7 +9,6 @@ import org.openmrs.api.APIException;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -43,6 +42,7 @@ public class BahmniFormController extends BaseRestController {
     @RequestMapping(value = baseUrl + "/saveTranslation", method = RequestMethod.POST)
     @ResponseBody
     public List<FormTranslation> FormTranslation(@RequestBody List<FormTranslation> formTranslations) {
+        System.out.println("FormTranslation in controller - start");
         return bahmniFormTranslationService.saveFormTranslation(formTranslations);
     }
 
@@ -118,8 +118,8 @@ public class BahmniFormController extends BaseRestController {
 
     @RequestMapping(value = baseUrl + "/getFormPrivileges", method = RequestMethod.GET)
     @ResponseBody
-    public List<FormPrivilege> getFormPrivileges(@RequestParam(value = "formId") Integer formId) {
-        return bahmniFormPrivilegesService.getAllPrivilegesForForm(formId);
+    public List<FormPrivilege> getFormPrivileges(@RequestParam(value = "formId") Integer formId, @RequestParam(value = "formVersion") String formVersion) {
+        return bahmniFormPrivilegesService.getAllPrivilegesForForm(formId , formVersion);
 
     }
     @RequestMapping(value = baseUrl + "/getFormPrivilegesFromUuidAndFormId", method = RequestMethod.GET)

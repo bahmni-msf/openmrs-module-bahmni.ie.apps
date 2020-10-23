@@ -12,7 +12,7 @@
         </id>
 
         <property name="formId" type="java.lang.Integer" column="formId" length="1000"/>
-        <property name="formUuid" type="java.lang.String" column="formUuid" length="1000"/>
+        <property name="formVersion" type="java.lang.String" column="formVersion" length="1000"/>
         <property name="privilegeName" type="java.lang.String" column="privilegeName" length="1000"/>
         <property name="editable" type="java.lang.Boolean" column="editable" length="1" not-null="true" />
         <property name="viewable" type="java.lang.Boolean" column="viewable" length="1" not-null="true" />

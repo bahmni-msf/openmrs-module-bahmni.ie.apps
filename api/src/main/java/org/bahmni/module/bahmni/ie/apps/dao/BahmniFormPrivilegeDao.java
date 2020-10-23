@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface BahmniFormPrivilegeDao {
 
-    List<FormPrivilege> getAllPrivilegesForForm(Integer formId) throws DAOException;
+    List<FormPrivilege> getAllPrivilegesForForm(Integer formId , String formVersion) throws DAOException;
 
     FormPrivilege saveFormPrivilege(FormPrivilege formPrivilege) throws DAOException;
 
