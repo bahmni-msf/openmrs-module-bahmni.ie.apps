@@ -122,20 +122,14 @@ public class BahmniFormController extends BaseRestController {
         return bahmniFormPrivilegesService.getAllPrivilegesForForm(formId , formVersion);
 
     }
-    @RequestMapping(value = baseUrl + "/getFormPrivilegesFromUuidAndFormId", method = RequestMethod.GET)
-    @ResponseBody
-    public List<FormPrivilege> getFormPrivilegeGivenFormUuid(@RequestParam(value = "formUuid") String formUuid , @RequestParam(value = "formId") Integer formId) {
-        return bahmniFormPrivilegesService.getFormPrivilegeGivenFormUuid(formUuid,formId);
 
-
-    }
     @RequestMapping(value = baseUrl + "/getFormPrivilegesFromFormName", method = RequestMethod.GET)
     @ResponseBody
     public List<FormPrivilege> getFormDetailsFromFormName(@RequestParam(value = "formName") String formName , @RequestParam(value = "formVersion") String formVersion) {
         Form retreivedForm = bahmniFormService.getFormDetailsFromFormName(formName, formVersion);
         Integer formId = retreivedForm.getFormId();
-        String formUuid = retreivedForm.getUuid();
-        return bahmniFormPrivilegesService.getFormPrivilegeGivenFormUuid(formUuid, formId);
+        //String formUuid = retreivedForm.getUuid();
+        return bahmniFormPrivilegesService.getAllPrivilegesForForm(formId, formVersion);
     }
     @RequestMapping(value = baseUrl + "/saveFormPrivileges", method = RequestMethod.POST)
     @ResponseBody

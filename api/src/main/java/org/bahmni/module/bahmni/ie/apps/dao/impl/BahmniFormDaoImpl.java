@@ -44,15 +44,7 @@ public class BahmniFormDaoImpl implements BahmniFormDao {
 	public List<Form> getAllPublishedForms(boolean includeRetired) throws DAOException {
 		return getAllForms(null, includeRetired, false);
 	}
-	@Override
-	public List<Form> getPublishedFormWithUuid(String formUuid) throws DAOException {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Form.class);
-		criteria.add(Restrictions.eq("uuid", formUuid));
-		criteria.add(Restrictions.eq("retired", Boolean.valueOf(false)));
-		criteria.add(Restrictions.eq("published", Boolean.valueOf(true)));
-		criteria.addOrder(Order.desc("version"));
-		return criteria.list();
-	}
+
 	@Override
 	public List<Form> getAllForms(String formName, boolean includeRetired, boolean includeDraftState) throws DAOException {
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Form.class);

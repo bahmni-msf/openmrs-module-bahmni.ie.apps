@@ -12,7 +12,7 @@ public interface BahmniFormPrivilegeDao {
 
     FormPrivilege getFormPrivilege(String privilegeName , Integer formId) throws DAOException;
 
-    List<FormPrivilege> getFormPrivilegeGivenFormUuid(String formUuid, Integer formId) throws DAOException;
+    List<FormPrivilege> getFormPrivilegeGivenFormUuid(String formVersion, Integer formId) throws DAOException;
 
     FormPrivilege deleteFormPrivilege(FormPrivilege formPrivilege) throws DAOException;
 }
