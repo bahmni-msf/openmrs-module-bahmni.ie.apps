@@ -114,6 +114,14 @@ public class BahmniFormDaoImpl implements BahmniFormDao {
 	}
 
 	@Override
+	public Form getFormsForGivenUuid(String formUuid) throws DAOException {
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Form.class);
+		criteria.add(Restrictions.eq("uuid", formUuid));
+		Session currentSession = sessionFactory.getCurrentSession();
+		return (Form)criteria.uniqueResult();
+	}
+
+	@Override
 	public List<BahmniForm> getAllPublishedFormsWithNameTranslation(boolean includeRetired) throws DAOException {
 		return formsWithNameTransaltionsFor(null, includeRetired, false);
 	}

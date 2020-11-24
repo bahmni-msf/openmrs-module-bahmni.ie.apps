@@ -334,4 +334,9 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         }
         return DEFAULT_VERSION;
     }
+    @Override
+    public Form getFormsForGivenUuid(String formUuid) {
+        Form retreivedForm = bahmniFormDao.getFormsForGivenUuid(formUuid);
+        return retreivedForm;
+    }
 }

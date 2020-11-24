@@ -48,9 +48,7 @@ public class BahmniFormPrivilegeDaoImpl implements BahmniFormPrivilegeDao {
     @Transactional
     @Override
     public FormPrivilege saveFormPrivilege(FormPrivilege formPrivilege) {
-        System.out.println("Inside BahmniFormPrivilegeDaoImpl &&&&&&-->saveFormPrivilege before save"+formPrivilege);
-        sessionFactory.getCurrentSession().saveOrUpdate(formPrivilege);
-        System.out.println("Inside BahmniFormPrivilegeDaoImpl &&&&&&-->saveFormPrivilege after save"+formPrivilege);
+        sessionFactory.getCurrentSession().saveOrUpdate(formPrivilege);        
         return formPrivilege;
     }
 

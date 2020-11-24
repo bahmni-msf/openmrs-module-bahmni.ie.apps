@@ -32,11 +32,11 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
     }
 
     public FormPrivilege saveFormPrivilege(FormPrivilege toPersistFormPrivilege) throws APIException {
-        System.out.println("Inside BahmniFormPrivilegesServiceImpl --****---->saveFormPrivilege "+toPersistFormPrivilege);
+
         if (toPersistFormPrivilege != null) {
             FormPrivilege originalFormPrivilege ;
             originalFormPrivilege = getFormPrivilege(toPersistFormPrivilege.getPrivilegeName(),toPersistFormPrivilege.getFormId());
-            System.out.println("Inside BahmniFormPrivilegesServiceImpl --****---->saveFormPrivilege before if block"+toPersistFormPrivilege);
+
             if (originalFormPrivilege != null) {
                 originalFormPrivilege.setFormId(toPersistFormPrivilege.getFormId());
                 originalFormPrivilege.setPrivilegeName(toPersistFormPrivilege.getPrivilegeName());
@@ -44,7 +44,7 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
                 originalFormPrivilege.setViewable(toPersistFormPrivilege.getViewable());
                 toPersistFormPrivilege = originalFormPrivilege;
             }
-            System.out.println("Inside BahmniFormPrivilegesServiceImpl --****---->saveFormPrivilege after if block"+toPersistFormPrivilege);
+
             return bahmniFormPrivilegeDao.saveFormPrivilege(toPersistFormPrivilege);
         } else {
             return null;
