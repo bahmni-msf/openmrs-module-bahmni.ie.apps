@@ -128,19 +128,17 @@ public class BahmniFormController extends BaseRestController {
     public List<FormPrivilege> getFormDetailsFromFormName(@RequestParam(value = "formName") String formName , @RequestParam(value = "formVersion") String formVersion) {
         Form retreivedForm = bahmniFormService.getFormDetailsFromFormName(formName, formVersion);
         Integer formId = retreivedForm.getFormId();
+        //String formUuid = retreivedForm.getUuid();
         return bahmniFormPrivilegesService.getAllPrivilegesForForm(formId, formVersion);
     }
     @RequestMapping(value = baseUrl + "/saveFormPrivileges", method = RequestMethod.POST)
     @ResponseBody
     public List<FormPrivilege> saveFormPrivileges(@RequestBody List<FormPrivilege> formPrivileges) {
+
+        System.out.println("saveFormPrivileges in controller");
         return bahmniFormPrivilegesService.saveFormPrivileges(formPrivileges);
-    }
-    @RequestMapping(value = baseUrl + "/getFormPrivilegesFromUuid", method = RequestMethod.GET)
-    @ResponseBody
-    public List<FormPrivilege> getFormPrivilegesForGivenUuid(@RequestParam(value = "formUuid") String formUuid) {
-        Form retreivedForm = bahmniFormService.getFormsForGivenUuid(formUuid);
-        List<FormPrivilege> retreivedFormPrivilegeList = bahmniFormPrivilegesService.getAllPrivilegesForForm(retreivedForm.getFormId(),retreivedForm.getVersion());
-        return retreivedFormPrivilegeList;
+
+
     }
 
 
