@@ -59,20 +59,10 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
         List<FormPrivilege> privilegesList = new ArrayList<FormPrivilege>();
         List<FormPrivilege> oldPrivilegeList = new ArrayList<FormPrivilege>();
 
-//        if (formPrivileges.size() == 1 && formPrivileges.get(0).getPrivilegeName().equalsIgnoreCase("")) {
-//            oldPrivilegeList = getAllPrivilegesForForm(formPrivileges.get(1).getFormId());
-//            if (oldPrivilegeList != null && !(oldPrivilegeList.isEmpty())) {
-//                for (int i = 0; i < oldPrivilegeList.size(); i++) {
-//                    resultList.add(bahmniFormPrivilegeDao.deleteFormPrivilege(oldPrivilegeList.get(i)));
-//                }
-//            }
-//            return resultList;
-//        } else {
-
             Iterator privilegeItr = formPrivileges.iterator();
             int formId = 0;
             String formVersion = "";
-            log.info("Inside BahmniFormPrivilegesServiceImpl -->saveFormPrivileges " + privilegeItr);
+
             while (privilegeItr.hasNext()) {
                 LinkedHashMap temp = (LinkedHashMap) privilegeItr.next();
                 List<Map.Entry> entrySetList = new ArrayList<Map.Entry>(temp.entrySet());
@@ -104,11 +94,11 @@ public class BahmniFormPrivilegesServiceImpl extends BaseOpenmrsService implemen
                         bahmniFormPrivilegeDao.deleteFormPrivilege(oldPrivilegeList.get(i));
                     }
                 }
-                    if (privilegesList != null) {
-                        for(int i=0;i<privilegesList.size();i++){
-                            resultList.add(saveFormPrivilege(privilegesList.get(i)));
-                        }
+                if (privilegesList != null) {
+                    for(int i=0;i<privilegesList.size();i++){
+                        resultList.add(saveFormPrivilege(privilegesList.get(i)));
                     }
+                }
             }
         return resultList;
 

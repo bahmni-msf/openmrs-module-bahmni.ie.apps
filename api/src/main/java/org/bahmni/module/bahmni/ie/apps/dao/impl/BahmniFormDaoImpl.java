@@ -84,7 +84,7 @@ public class BahmniFormDaoImpl implements BahmniFormDao {
 				.setResultTransformer( Transformers.aliasToBean(BahmniForm.class));
 
 		List<BahmniForm> result =  query.list();
-		List<BahmniForm> finalList = new ArrayList<BahmniForm>();
+		List<BahmniForm> finalListOfForms = new ArrayList<BahmniForm>();
 		if(result != null){
 			for (int i=0;i<result.size();i++){
 				BahmniForm tempForm = result.get(i);
@@ -93,10 +93,10 @@ public class BahmniFormDaoImpl implements BahmniFormDao {
 				criteria.add(Restrictions.eq("formVersion",tempForm.getVersion()));
 				List<FormPrivilege>  privileges = criteria.list();
 				tempForm.setPrivileges(privileges);
-				finalList.add(tempForm);
+				finalListOfForms.add(tempForm);
 			}
-			return finalList;
-		}else{
+			return finalListOfForms;
+		} else {
 			return result;
 		}
 
