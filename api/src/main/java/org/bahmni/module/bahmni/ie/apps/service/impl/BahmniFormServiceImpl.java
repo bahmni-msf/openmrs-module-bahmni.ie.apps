@@ -192,6 +192,11 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
         return new BahmniFormMapper().map(formResource);
     }
 
+    @Override
+    public Form getFormDetailsFromFormName(String formName, String formVersion){
+        return formService.getForm(formName,formVersion);
+    }
+
     private String getFormResourceValue(BahmniFormResource bahmniFormResource, String referenceFormUuid) {
         String value = isEmpty(referenceFormUuid)
                 ? bahmniFormResource.getValue()
@@ -328,5 +333,10 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
             return (int) version;
         }
         return DEFAULT_VERSION;
+    }
+    @Override
+    public Form getFormsForGivenUuid(String formUuid) {
+        Form retreivedForm = bahmniFormDao.getFormsForGivenUuid(formUuid);
+        return retreivedForm;
     }
 }

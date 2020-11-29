@@ -28,5 +28,14 @@
 			</list>
 		</property>
 	</bean>
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list merge="true">
+				<value>org.bahmni.module.bahmni.ie.apps.service.BahmniFormPrivilegesService</value>
+				<ref bean="bahmniFormPrivilegesService"/>
+
+			</list>
+		</property>
+	</bean>
 
 </beans>
