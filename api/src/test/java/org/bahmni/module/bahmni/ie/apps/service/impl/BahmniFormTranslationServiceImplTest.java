@@ -417,8 +417,10 @@ public class BahmniFormTranslationServiceImplTest {
 
 	@Test
 	public void shouldPersistOldVersionLocaleTranslationsToNewVersionWhenOldVersionTranslationFileNameIsFormUUID() throws Exception {
-		BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl();
+		BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl(formService);
 		String tempTranslationsPath = createTempFolder();
+		Form form = MotherForm.createForm("test_form", "prev-uuid", "FormVersion", true);
+		when(formService.getFormByUuid("prev-uuid")).thenReturn(form);
 
 		String referenceFormUuid = "prev-uuid";
 		String prevVersionTranslationsPath = tempTranslationsPath + "/" + referenceFormUuid + ".json";
@@ -444,8 +446,10 @@ public class BahmniFormTranslationServiceImplTest {
 
 	@Test
 	public void shouldReturnTranslationsInNewVersionWhenTheReferenceFormTranslationFileIsNotFound() throws Exception {
-		BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl();
+		BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl(formService);
 		String tempTranslationsPath = createTempFolder();
+		Form form = MotherForm.createForm("test_form", "prev-uuid", "FormVersion", true);
+		when(formService.getFormByUuid("prev-uuid")).thenReturn(form);
 
 		String referenceFormUuid = "prev-uuid";
 		String prevVersionTranslationsPath = tempTranslationsPath + "/" + referenceFormUuid + "_not_found.json";
@@ -599,8 +603,10 @@ public class BahmniFormTranslationServiceImplTest {
 	@Test
 	public void shouldGetNormalTranslationsWhenPreviousVersionDoesnotHaveTranslations()
 			throws IllegalAccessException, NoSuchFieldException, IOException {
-		BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl();
+		BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl(formService);
 		String tempTranslationsPath = createTempFolder();
+		Form form = MotherForm.createForm("test_form", "prev-uuid", "FormVersion", true);
+		when(formService.getFormByUuid("prev-uuid")).thenReturn(form);
 
 		String prevVersionTranslationsPath = tempTranslationsPath + "/test_form_2.json";
 		String prevVersionJson = "{}";
@@ -608,6 +614,7 @@ public class BahmniFormTranslationServiceImplTest {
 
 		FormTranslation formTranslationEn = createFormTranslation("en", "test_form");
 		formTranslationEn.setReferenceVersion("2");
+		formTranslationEn.setReferenceFormUuid("prev-uuid");
 		bahmniFormTranslationService.saveFormTranslation(new ArrayList<>(Arrays.asList(formTranslationEn)));
 
 		String expected = "{\"en\":{\"concepts\":{\"TEMPERATURE_1\":\"Temperature\",\"TEMPERATURE_1_DESC\":\"Temperature\"},\"labels\":{\"LABEL_2\":\"Vitals\"}}}";
@@ -740,5 +747,35 @@ public class BahmniFormTranslationServiceImplTest {
 
 		when(conceptService.getConceptsByName("TEMPERATURE")).thenReturn(Arrays.asList(concept, concept1));
 		when(administrationService.getGlobalProperty("default_locale")).thenReturn(defaultLocale);
+	}
+
+	@Test
+	public void shouldCopyTranslationsFromImportedFormIfTheReferenceUuidIsNotPresentInTheBahmniEnv() throws IllegalAccessException, NoSuchFieldException, IOException {
+		BahmniFormTranslationService bahmniFormTranslationService = new BahmniFormTranslationServiceImpl(formService);
+		String tempTranslationsPath = createTempFolder();
+		when(formService.getFormByUuid("prev-uuid")).thenReturn(null);
+
+		String importedTranslationsPath = tempTranslationsPath + "/form_uuid.json";
+		String importedTranslationsJson =
+				"{\"en\":{\"concepts\":{\"TEMPERATURE_1\":\"Temperature\",\"TEMPERATURE_1_DESC\":\"Temperature\"},\"labels\":{\"LABEL_2\":\"Vitals\"}}"
+						+
+						",\"fr\":{\"concepts\":{\"TEMPERATURE_1\":\"Temperature\",\"TEMPERATURE_1_DESC\":\"Temperature\"},\"labels\":{\"LABEL_2\":\"Vitals\"}}}";
+		FileUtils.writeStringToFile(new File(importedTranslationsPath), importedTranslationsJson);
+
+		FormTranslation defaultFormTranslations = createFormTranslation("en", "test_form");
+		defaultFormTranslations.setReferenceVersion("2");
+		defaultFormTranslations.setReferenceFormUuid("prev-uuid");
+		HashMap<String, String> concepts = new HashMap<>();
+		concepts.put("TEMPERATURE_1", "Some Default");
+		concepts.put("TEMPERATURE_1_DESC", "Some Default");
+		defaultFormTranslations.setConcepts(concepts);
+		HashMap<String, String> labels = new HashMap<>();
+		labels.put("LABEL_2", "Some Defaults");
+		defaultFormTranslations.setLabels(labels);
+		bahmniFormTranslationService.saveFormTranslation(new ArrayList<>(Arrays.asList(defaultFormTranslations)));
+
+		File translationFile = new File(tempTranslationsPath + "/form_uuid.json");
+		assertTrue(translationFile.exists());
+		assertEquals(importedTranslationsJson, FileUtils.readFileToString(translationFile));
 	}
 }

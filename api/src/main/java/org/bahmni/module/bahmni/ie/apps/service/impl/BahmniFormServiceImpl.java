@@ -199,14 +199,16 @@ public class BahmniFormServiceImpl extends BaseOpenmrsService implements BahmniF
     }
 
     private String getFormResourceValue(BahmniFormResource bahmniFormResource, String referenceFormUuid) {
-        String value = isEmpty(referenceFormUuid)
-                ? bahmniFormResource.getValue()
-                : getOldFormResourceValue(referenceFormUuid);
+        Form form = null;
+        if(!isEmpty(referenceFormUuid))
+            form = formService.getFormByUuid(referenceFormUuid);
+        String value = (form != null)
+                ? getOldFormResourceValue(form)
+                : bahmniFormResource.getValue();
         return value == null || value.trim().equals("") ? "" : value;
     }
 
-    private String getOldFormResourceValue(String referenceFormUuid) {
-        Form form = formService.getFormByUuid(referenceFormUuid);
+    private String getOldFormResourceValue(Form form) {
         FormResource formResource = formService.getFormResource(form, form.getName() + "_FormName_Translation");
         return formResource != null ? formResource.getValueReference() : null;
     }
