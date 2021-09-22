@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Service
@@ -86,6 +87,9 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
 					!firstTranslation.getVersion().equals(firstTranslation.getReferenceVersion());
 
 			if (hasReferenceForm && referenceFormIsNotTheCurrentForm) {
+				Form form = null;
+				if(isNotEmpty(firstTranslation.getReferenceFormUuid()))
+					form = formService.getFormByUuid(firstTranslation.getReferenceFormUuid());
 				File referenceVersionFile = translationFileFor(firstTranslation.getFormName(),
 						firstTranslation.getReferenceVersion(), firstTranslation.getReferenceFormUuid());
 				if(referenceVersionFile.exists()) {
@@ -93,12 +97,18 @@ public class BahmniFormTranslationServiceImpl extends BaseOpenmrsService impleme
 					if (!refVersionTranslationsJson.keySet().isEmpty())
 						updateTranslationsWithRefVersion(firstTranslation, translationsJson, refVersionTranslationsJson);
 				}
+				else if(form == null){
+					translationsJson = existingTranslationsFrom(translationFile);
+					if (!translationsJson.keySet().isEmpty())
+						updateTranslationsWithRefVersion(firstTranslation, translationsJson, translationsJson);
+				}
 			}
 			saveTranslationsToFile(translationsJson, translationFile);
 		}
 
 		return formTranslations;
 	}
+
 
 	@Override
 	public FormFieldTranslations setNewTranslationsForForm(String locale, String formName, String version, String formUuid) {
