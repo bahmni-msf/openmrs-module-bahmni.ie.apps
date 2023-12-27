@@ -1,7 +1,7 @@
 name: Build and Publish package
 on:
   push:
-    branches: [ githubActions ]
+    branches: [githubActions]
 
 jobs:
   build-publish-package:
@@ -16,15 +16,21 @@ jobs:
       - name: Cache Maven dependencies
         uses: actions/cache@v2
         with:
-          path: ~/.m2/repository
+          path: |
+            ~/.m2/repository
+            omod/target
           key: maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             maven-
       - name: Build with Maven
         run: ./mvnw --no-transfer-progress clean install
       - name: set Omod name
-        run: 
-          echo "OMOD_NAME=$(basename "$(ls -1 omod/target/*.omod)" .omod)" >> $GITHUB_ENV
-      - name: set Omod name
-        run:
-          echo "${{env.OMOD_NAME}}"
+        run: echo "OMOD_NAME=$(basename "$(ls -1 omod/target/*.omod)" .omod)" >> $GITHUB_ENV
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.BAHMNI_LITE_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.BAHMNI_LITE_AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.BAHMNI_LITE_AWS_REGION }}
+      - name: upload omod
+        run: aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://v2-artefacts/${{github.repository}}/build/${{env.OMOD_NAME}}-$GITHUB_RUN_NUMBER.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
