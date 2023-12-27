@@ -13,16 +13,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Cache Maven dependencies
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: |
-            ~/.m2/repository
-            omod/target
-          key: maven-${{ hashFiles('**/pom.xml') }}
       - name: Build with Maven
-        if: steps.cache.outputs.cache-hit != 'true'
         run: ./mvnw --no-transfer-progress clean install
       - name: set Omod name
         run: echo "OMOD_NAME=$(basename "$(ls -1 omod/target/*.omod)" .omod)" >> $GITHUB_ENV
@@ -37,4 +28,3 @@ jobs:
           aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://v2-artefacts/${{github.event.repository.name}}/build/${{env.OMOD_NAME}}-$GITHUB_RUN_NUMBER.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
           aws s3 rm s3://v2-artefacts/${{github.event.repository.name}}/latest/ --region ap-south-1 --recursive
           aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://v2-artefacts/${{github.event.repository.name}}/latest/${{env.OMOD_NAME}}-$GITHUB_RUN_NUMBER.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
-          echo $GITHUB_REPOSITORY
