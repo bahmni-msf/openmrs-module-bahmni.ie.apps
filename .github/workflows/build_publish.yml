@@ -1,8 +1,8 @@
 name: Build and Publish package
 on:
   push:
-    branches: [ master ]
-  
+    branches: [ githubActions ]
+
 jobs:
   build-publish-package:
     name: Build and Publish package
@@ -13,11 +13,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-          server-id: nexus-sonatype
-          server-username: NEXUS_USERNAME
-          server-password: NEXUS_PASSWORD
       - name: Build and deploy with Maven
-        run: ./mvnw --no-transfer-progress clean -U deploy
-        env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: ./mvnw --no-transfer-progress clean build
+      - name: show
+        run: ls -al omod/target
