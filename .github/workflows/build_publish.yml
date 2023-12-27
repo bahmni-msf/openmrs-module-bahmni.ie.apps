@@ -18,4 +18,6 @@ jobs:
       - name: set Omod name
         run: 
           echo "OMOD_NAME=$(basename "$(ls -1 omod/target/*.omod)" .omod)" >> $GITHUB_ENV
-          echo "${env.OMOD_NAME}"
+      - name: set Omod name
+        run:
+          echo $env.OMOD_NAME
