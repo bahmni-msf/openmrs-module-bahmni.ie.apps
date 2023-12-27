@@ -14,6 +14,6 @@ jobs:
         with:
           java-version: 1.8
       - name: Build and deploy with Maven
-        run: ./mvnw --no-transfer-progress clean build
+        run: ./mvnw --no-transfer-progress clean install
       - name: show
         run: ls -al omod/target
