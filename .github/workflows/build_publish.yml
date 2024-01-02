@@ -1,7 +1,7 @@
 name: Build and Publish package
 on:
   push:
-    branches: [githubActions]
+    branches: [ocp-dev-bahmni-lite]
 
 jobs:
   build-publish-package:
@@ -15,7 +15,7 @@ jobs:
           java-version: 1.8
       - name: Build with Maven
         run: ./mvnw --no-transfer-progress clean install
-      - name: set Omod name
+      - name: Set OMOD name
         run: echo "OMOD_NAME=$(basename "$(ls -1 omod/target/*.omod)" .omod)" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -23,7 +23,7 @@ jobs:
           aws-access-key-id: ${{ secrets.BAHMNI_LITE_AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.BAHMNI_LITE_AWS_SECRET_KEY }}
           aws-region: ${{ secrets.BAHMNI_LITE_AWS_REGION }}
-      - name: upload omod
+      - name: Upload OMOD
         run: |
           aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://v2-artefacts/${{github.event.repository.name}}/build/${{env.OMOD_NAME}}-$GITHUB_RUN_NUMBER.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
           aws s3 rm s3://v2-artefacts/${{github.event.repository.name}}/latest/ --region ap-south-1 --recursive

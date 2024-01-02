@@ -1,0 +1,31 @@
+name: Build and Publish package
+on:
+  push:
+    tags:
+      - 'msf-release-[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+jobs:
+  build-publish-package:
+    name: Build and Publish package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Build with Maven
+        run: ./mvnw --no-transfer-progress clean install
+      - name: Set OMOD name and Release version
+        run: 
+          echo "OMOD_NAME=$(basename "$(ls -1 omod/target/*.omod)" .omod)" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$(echo $GITHUB_REF_NAME | cut -d '-' -f 3)" >> $GITHUB_ENV
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.BAHMNI_LITE_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.BAHMNI_LITE_AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.BAHMNI_LITE_AWS_REGION }}
+      - name: Upload OMOD
+        run: aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://stable/$GITHUB_REF_NAME/${{env.OMOD_NAME}}-${{env.RELEASE_VERSION}}.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
