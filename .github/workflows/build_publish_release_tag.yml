@@ -1,7 +1,7 @@
 name: Build and Publish package
 on:
   push:
-    branches: [ocp-dev-bahmni-lite]
+    branches: [githubActions]
     tags:
       - 'msf-release-[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
