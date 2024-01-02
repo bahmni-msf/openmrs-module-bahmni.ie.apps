@@ -18,16 +18,6 @@ jobs:
         with:
           java-version: 1.8
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.m2/repository
-            omod/target
-          key: maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            maven-
-
       - name: Build with Maven
         run: ./mvnw --no-transfer-progress clean install
 
@@ -47,7 +37,4 @@ jobs:
           aws-region: ${{ secrets.BAHMNI_LITE_AWS_REGION }}
 
       - name: Upload OMOD
-        run: |
-          echo ${{env.OMOD_NAME}}
-          echo ${{env.RELEASE_VERSION}}
-          aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://stable/$GITHUB_REF_NAME/${{env.OMOD_NAME}}-${{env.RELEASE_VERSION}}.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
+        run: aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://stable/$GITHUB_REF_NAME/${{env.OMOD_NAME}}-${{env.RELEASE_VERSION}}.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
