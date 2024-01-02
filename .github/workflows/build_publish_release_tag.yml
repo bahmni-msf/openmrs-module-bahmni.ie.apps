@@ -28,9 +28,12 @@ jobs:
       - name: Build with Maven
         run: ./mvnw --no-transfer-progress clean install
       - name: Set OMOD name and Release version
-        run: 
-          echo "OMOD_NAME=$(basename "$(ls -1 omod/target/*.omod)" .omod)" >> $GITHUB_ENV
-          echo "RELEASE_VERSION=$(echo $GITHUB_REF_NAME | cut -d '-' -f 3)" >> $GITHUB_ENV
+        run: |
+          OMOD_PATH=$(ls -1 omod/target/*.omod)
+          OMOD_NAME=$(basename "$OMOD_PATH" .omod)
+          RELEASE_VERSION=$(echo $GITHUB_REF_NAME | cut -d '-' -f 3)
+          echo "OMOD_NAME=${OMOD_NAME}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -39,8 +42,6 @@ jobs:
           aws-region: ${{ secrets.BAHMNI_LITE_AWS_REGION }}
       - name: Upload OMOD
         run: |
-          echo $env.OMOD_NAME
           echo ${{env.OMOD_NAME}}
-          echo $env.RELEASE_VERSION
           echo ${{env.RELEASE_VERSION}}
           aws s3 cp omod/target/${{env.OMOD_NAME}}.omod s3://stable/$GITHUB_REF_NAME/${{env.OMOD_NAME}}-${{env.RELEASE_VERSION}}.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
