@@ -37,7 +37,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.BAHMNI_LITE_AWS_SECRET_KEY }}
           aws-region: ${{ secrets.BAHMNI_LITE_AWS_REGION }}
       - name: Upload OMOD
-        run: 
+        run: |
           echo $env.OMOD_NAME
           echo ${{env.OMOD_NAME}}
           echo $env.RELEASE_VERSION
