@@ -9,7 +9,7 @@ jobs:
     name: Build and Publish package
     runs-on: ubuntu-latest
     steps:
-      - name: Get Code
+      - name: Pull Github code
         uses: actions/checkout@v2
 
       - name: Set up JDK 1.8
